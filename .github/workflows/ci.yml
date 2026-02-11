@@ -105,10 +105,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust 1.70
+      - name: Install Rust 1.80
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: "1.70"
+          toolchain: "1.80"
 
       - name: Build with MSRV
         run: cargo build --verbose
