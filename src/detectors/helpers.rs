@@ -156,10 +156,7 @@ pub fn trailing_avg_shadow<T: crate::OHLCV>(bars: &[T], at: usize, period: usize
   }
   let s = at.saturating_sub(period);
   let slice = &bars[s..at];
-  let sum: f64 = slice
-    .iter()
-    .map(|b| OHLCVExt::upper_shadow(b) + OHLCVExt::lower_shadow(b))
-    .sum();
+  let sum: f64 = slice.iter().map(|b| OHLCVExt::upper_shadow(b) + OHLCVExt::lower_shadow(b)).sum();
   sum / slice.len() as f64 / 2.0
 }
 
@@ -224,5 +221,20 @@ pub fn is_shadow_very_short_f(shadow: f64, avg_range: f64, range: f64, factor: f
     shadow < avg_range * factor
   } else {
     range > 0.0 && shadow / range <= SHADOW_SHORT_RATIO
+  }
+}
+
+/// Returns true if `shadow` exceeds the "very short" threshold (i.e. is NOT very short).
+/// Inverse of [`is_shadow_very_short_f`] with custom factor, used for checking that a shadow
+/// is meaningfully long (e.g. the lower shadow of a Dragonfly Doji).
+#[inline]
+pub fn shadow_exceeds_veryshort(shadow: f64, avg_range: f64, factor: f64, range: f64) -> bool {
+  let threshold = avg_range * factor;
+  if threshold > 0.0 {
+    shadow > threshold
+  } else if range > 0.0 {
+    shadow / range > SHADOW_SHORT_RATIO
+  } else {
+    false
   }
 }

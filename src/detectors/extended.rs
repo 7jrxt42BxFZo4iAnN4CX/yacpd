@@ -11,11 +11,43 @@
 
 use std::collections::HashMap;
 
-use crate::{
-  params::{get_period, get_ratio, ParamMeta, ParamType, ParameterizedDetector},
-  Direction, MarketContext, OHLCVExt, PatternDetector, PatternId, PatternMatch, Period, Ratio,
-  Result, OHLCV,
-};
+use crate::{params::{get_period, get_ratio, ParamMeta, ParamType, ParameterizedDetector}, Direction, MarketContext, OHLCVExt, PatternDetector, PatternId, PatternMatch, Period, Ratio, Result, OHLCV};
+
+impl_with_defaults!(
+  PriceLinesDetector,
+  FallingWindowDetector,
+  RisingWindowDetector,
+  GappingDownDojiDetector,
+  GappingUpDojiDetector,
+  AboveTheStomachDetector,
+  BelowTheStomachDetector,
+  CollapsingDojiStarDetector,
+  DeliberationDetector,
+  LastEngulfingBottomDetector,
+  LastEngulfingTopDetector,
+  TwoBlackGappingDetector,
+  MeetingLinesBearishDetector,
+  MeetingLinesBullishDetector,
+  NorthernDojiDetector,
+  SouthernDojiDetector,
+  BlackMarubozuDetector,
+  WhiteMarubozuDetector,
+  OpeningBlackMarubozuDetector,
+  OpeningWhiteMarubozuDetector,
+  BlackCandleDetector,
+  WhiteCandleDetector,
+  ShortBlackDetector,
+  ShortWhiteDetector,
+  LongBlackDayDetector,
+  LongWhiteDayDetector,
+  BlackSpinningTopDetector,
+  WhiteSpinningTopDetector,
+  ShootingStar2LinesDetector,
+  DownsideGapThreeMethodsDetector,
+  UpsideGapThreeMethodsDetector,
+  DownsideTasukiGapDetector,
+  UpsideTasukiGapDetector,
+);
 
 // ============================================================
 // PRICE LINES (Consecutive Candles)
@@ -36,10 +68,6 @@ impl Default for PriceLinesDetector {
 }
 
 impl PriceLinesDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-
   pub fn with_count(count: usize) -> Self {
     Self { count: count.max(3) }
   }
@@ -127,12 +155,6 @@ impl PatternDetector for PriceLinesDetector {
 #[derive(Debug, Clone, Copy, Default)]
 pub struct FallingWindowDetector;
 
-impl FallingWindowDetector {
-  pub fn with_defaults() -> Self {
-    Self
-  }
-}
-
 impl PatternDetector for FallingWindowDetector {
   fn id(&self) -> PatternId {
     PatternId("FALLING_WINDOW")
@@ -179,12 +201,6 @@ impl PatternDetector for FallingWindowDetector {
 /// Current Low > Previous High
 #[derive(Debug, Clone, Copy, Default)]
 pub struct RisingWindowDetector;
-
-impl RisingWindowDetector {
-  pub fn with_defaults() -> Self {
-    Self
-  }
-}
 
 impl PatternDetector for RisingWindowDetector {
   fn id(&self) -> PatternId {
@@ -239,12 +255,6 @@ pub struct GappingDownDojiDetector {
 impl Default for GappingDownDojiDetector {
   fn default() -> Self {
     Self { body_pct: Ratio::new_const(0.1) }
-  }
-}
-
-impl GappingDownDojiDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -307,12 +317,6 @@ pub struct GappingUpDojiDetector {
 impl Default for GappingUpDojiDetector {
   fn default() -> Self {
     Self { body_pct: Ratio::new_const(0.1) }
-  }
-}
-
-impl GappingUpDojiDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -382,12 +386,6 @@ impl Default for AboveTheStomachDetector {
   }
 }
 
-impl AboveTheStomachDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for AboveTheStomachDetector {
   fn id(&self) -> PatternId {
     PatternId("ABOVE_THE_STOMACH")
@@ -451,12 +449,6 @@ pub struct BelowTheStomachDetector {
 impl Default for BelowTheStomachDetector {
   fn default() -> Self {
     Self { penetration: Ratio::new_const(0.0) }
-  }
-}
-
-impl BelowTheStomachDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -524,12 +516,6 @@ pub struct CollapsingDojiStarDetector {
 impl Default for CollapsingDojiStarDetector {
   fn default() -> Self {
     Self { body_pct: Ratio::new_const(0.1), gap_pct: Ratio::new_const(0.005) }
-  }
-}
-
-impl CollapsingDojiStarDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -627,12 +613,6 @@ impl Default for DeliberationDetector {
   }
 }
 
-impl DeliberationDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for DeliberationDetector {
   fn id(&self) -> PatternId {
     PatternId("DELIBERATION")
@@ -723,12 +703,6 @@ impl Default for LastEngulfingBottomDetector {
   }
 }
 
-impl LastEngulfingBottomDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for LastEngulfingBottomDetector {
   fn id(&self) -> PatternId {
     PatternId("LAST_ENGULFING_BOTTOM")
@@ -789,12 +763,6 @@ impl Default for LastEngulfingTopDetector {
   }
 }
 
-impl LastEngulfingTopDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for LastEngulfingTopDetector {
   fn id(&self) -> PatternId {
     PatternId("LAST_ENGULFING_TOP")
@@ -845,12 +813,6 @@ impl PatternDetector for LastEngulfingTopDetector {
 /// Two Black Gapping - Two black candles with gap down between them
 #[derive(Debug, Clone, Copy, Default)]
 pub struct TwoBlackGappingDetector;
-
-impl TwoBlackGappingDetector {
-  pub fn with_defaults() -> Self {
-    Self
-  }
-}
 
 impl PatternDetector for TwoBlackGappingDetector {
   fn id(&self) -> PatternId {
@@ -919,12 +881,6 @@ impl Default for MeetingLinesBearishDetector {
   }
 }
 
-impl MeetingLinesBearishDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for MeetingLinesBearishDetector {
   fn id(&self) -> PatternId {
     PatternId("MEETING_LINES_BEARISH")
@@ -963,7 +919,9 @@ impl PatternDetector for MeetingLinesBearishDetector {
     if prev_range <= f64::EPSILON || curr_range <= f64::EPSILON {
       return None;
     }
-    if prev.body() / prev_range < self.body_pct.get() || curr.body() / curr_range < self.body_pct.get() {
+    if prev.body() / prev_range < self.body_pct.get()
+      || curr.body() / curr_range < self.body_pct.get()
+    {
       return None;
     }
 
@@ -997,12 +955,6 @@ pub struct MeetingLinesBullishDetector {
 impl Default for MeetingLinesBullishDetector {
   fn default() -> Self {
     Self { tolerance: Ratio::new_const(0.001), body_pct: Ratio::new_const(0.6) }
-  }
-}
-
-impl MeetingLinesBullishDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -1044,7 +996,9 @@ impl PatternDetector for MeetingLinesBullishDetector {
     if prev_range <= f64::EPSILON || curr_range <= f64::EPSILON {
       return None;
     }
-    if prev.body() / prev_range < self.body_pct.get() || curr.body() / curr_range < self.body_pct.get() {
+    if prev.body() / prev_range < self.body_pct.get()
+      || curr.body() / curr_range < self.body_pct.get()
+    {
       return None;
     }
 
@@ -1082,12 +1036,6 @@ pub struct NorthernDojiDetector {
 impl Default for NorthernDojiDetector {
   fn default() -> Self {
     Self { body_pct: Ratio::new_const(0.1), trend_period: Period::new_const(14) }
-  }
-}
-
-impl NorthernDojiDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -1149,12 +1097,6 @@ impl Default for SouthernDojiDetector {
   }
 }
 
-impl SouthernDojiDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for SouthernDojiDetector {
   fn id(&self) -> PatternId {
     PatternId("SOUTHERN_DOJI")
@@ -1212,12 +1154,6 @@ pub struct BlackMarubozuDetector {
 impl Default for BlackMarubozuDetector {
   fn default() -> Self {
     Self { shadow_tolerance: Ratio::new_const(0.01) }
-  }
-}
-
-impl BlackMarubozuDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -1282,12 +1218,6 @@ impl Default for WhiteMarubozuDetector {
   }
 }
 
-impl WhiteMarubozuDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for WhiteMarubozuDetector {
   fn id(&self) -> PatternId {
     PatternId("WHITE_MARUBOZU")
@@ -1346,12 +1276,6 @@ pub struct OpeningBlackMarubozuDetector {
 impl Default for OpeningBlackMarubozuDetector {
   fn default() -> Self {
     Self { shadow_tolerance: Ratio::new_const(0.01) }
-  }
-}
-
-impl OpeningBlackMarubozuDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -1416,12 +1340,6 @@ impl Default for OpeningWhiteMarubozuDetector {
   }
 }
 
-impl OpeningWhiteMarubozuDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for OpeningWhiteMarubozuDetector {
   fn id(&self) -> PatternId {
     PatternId("OPENING_WHITE_MARUBOZU")
@@ -1478,12 +1396,6 @@ impl PatternDetector for OpeningWhiteMarubozuDetector {
 #[derive(Debug, Clone, Copy, Default)]
 pub struct BlackCandleDetector;
 
-impl BlackCandleDetector {
-  pub fn with_defaults() -> Self {
-    Self
-  }
-}
-
 impl PatternDetector for BlackCandleDetector {
   fn id(&self) -> PatternId {
     PatternId("BLACK_CANDLE")
@@ -1518,12 +1430,6 @@ impl PatternDetector for BlackCandleDetector {
 /// White Candle - Simple bullish candle (Close > Open)
 #[derive(Debug, Clone, Copy, Default)]
 pub struct WhiteCandleDetector;
-
-impl WhiteCandleDetector {
-  pub fn with_defaults() -> Self {
-    Self
-  }
-}
 
 impl PatternDetector for WhiteCandleDetector {
   fn id(&self) -> PatternId {
@@ -1566,12 +1472,6 @@ pub struct ShortBlackDetector {
 impl Default for ShortBlackDetector {
   fn default() -> Self {
     Self { body_pct: Ratio::new_const(0.3) }
-  }
-}
-
-impl ShortBlackDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -1628,12 +1528,6 @@ impl Default for ShortWhiteDetector {
   }
 }
 
-impl ShortWhiteDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for ShortWhiteDetector {
   fn id(&self) -> PatternId {
     PatternId("SHORT_WHITE")
@@ -1684,12 +1578,6 @@ pub struct LongBlackDayDetector {
 impl Default for LongBlackDayDetector {
   fn default() -> Self {
     Self { body_pct: Ratio::new_const(0.7) }
-  }
-}
-
-impl LongBlackDayDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -1747,12 +1635,6 @@ impl Default for LongWhiteDayDetector {
   }
 }
 
-impl LongWhiteDayDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for LongWhiteDayDetector {
   fn id(&self) -> PatternId {
     PatternId("LONG_WHITE_DAY")
@@ -1806,12 +1688,6 @@ pub struct BlackSpinningTopDetector {
 impl Default for BlackSpinningTopDetector {
   fn default() -> Self {
     Self { body_pct: Ratio::new_const(0.3), shadow_ratio: Ratio::new_const(0.5) }
-  }
-}
-
-impl BlackSpinningTopDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -1880,12 +1756,6 @@ pub struct WhiteSpinningTopDetector {
 impl Default for WhiteSpinningTopDetector {
   fn default() -> Self {
     Self { body_pct: Ratio::new_const(0.3), shadow_ratio: Ratio::new_const(0.5) }
-  }
-}
-
-impl WhiteSpinningTopDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -1958,12 +1828,6 @@ pub struct ShootingStar2LinesDetector {
 impl Default for ShootingStar2LinesDetector {
   fn default() -> Self {
     Self { body_pct: Ratio::new_const(0.3), shadow_ratio: Ratio::new_const(2.0) }
-  }
-}
-
-impl ShootingStar2LinesDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -2043,12 +1907,6 @@ impl PatternDetector for ShootingStar2LinesDetector {
 #[derive(Debug, Clone, Copy, Default)]
 pub struct DownsideGapThreeMethodsDetector;
 
-impl DownsideGapThreeMethodsDetector {
-  pub fn with_defaults() -> Self {
-    Self
-  }
-}
-
 impl PatternDetector for DownsideGapThreeMethodsDetector {
   fn id(&self) -> PatternId {
     PatternId("DOWNSIDE_GAP_THREE_METHODS")
@@ -2110,12 +1968,6 @@ impl PatternDetector for DownsideGapThreeMethodsDetector {
 /// Upside Gap Three Methods - Gap up, then black candle closes the gap (bullish continuation)
 #[derive(Debug, Clone, Copy, Default)]
 pub struct UpsideGapThreeMethodsDetector;
-
-impl UpsideGapThreeMethodsDetector {
-  pub fn with_defaults() -> Self {
-    Self
-  }
-}
 
 impl PatternDetector for UpsideGapThreeMethodsDetector {
   fn id(&self) -> PatternId {
@@ -2192,12 +2044,6 @@ impl Default for DownsideTasukiGapDetector {
   }
 }
 
-impl DownsideTasukiGapDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for DownsideTasukiGapDetector {
   fn id(&self) -> PatternId {
     PatternId("DOWNSIDE_TASUKI_GAP")
@@ -2271,12 +2117,6 @@ pub struct UpsideTasukiGapDetector {
 impl Default for UpsideTasukiGapDetector {
   fn default() -> Self {
     Self { gap_fill_pct: Ratio::new_const(0.7) }
-  }
-}
-
-impl UpsideTasukiGapDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 

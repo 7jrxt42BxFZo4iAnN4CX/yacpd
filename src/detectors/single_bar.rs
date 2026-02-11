@@ -9,16 +9,32 @@
 
 #![allow(clippy::collapsible_if, clippy::collapsible_else_if)]
 
+use super::helpers::{self, is_body_long_f, is_body_short_f, is_doji_f, is_shadow_long, is_shadow_short, is_shadow_very_short_f, is_shadow_verylong_f, shadow_exceeds_veryshort};
 use crate::{Direction, MarketContext, OHLCVExt, PatternDetector, PatternId, PatternMatch, OHLCV};
-
-use super::helpers::{
-  self, is_body_long_f, is_body_short_f, is_doji_f, is_shadow_long, is_shadow_short,
-  is_shadow_very_short_f, is_shadow_verylong_f,
-};
 
 mod talib {
   pub use super::super::helpers::DOJI_RATIO;
 }
+
+impl_with_defaults!(
+  DojiDetector,
+  DragonflyDojiDetector,
+  GravestoneDojiDetector,
+  LongLeggedDojiDetector,
+  RickshawManDetector,
+  HammerDetector,
+  HangingManDetector,
+  InvertedHammerDetector,
+  ShootingStarDetector,
+  TakuriDetector,
+  MarubozuDetector,
+  ClosingMarubozuDetector,
+  LongLineDetector,
+  ShortLineDetector,
+  SpinningTopDetector,
+  HighWaveDetector,
+  BeltHoldDetector,
+);
 
 // ============================================================
 // DOJI FAMILY
@@ -32,15 +48,7 @@ pub struct DojiDetector {
 
 impl Default for DojiDetector {
   fn default() -> Self {
-    Self {
-      doji_factor: helpers::DOJI_FACTOR,
-    }
-  }
-}
-
-impl DojiDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
+    Self { doji_factor: helpers::DOJI_FACTOR }
   }
 }
 
@@ -53,7 +61,12 @@ impl PatternDetector for DojiDetector {
     1
   }
 
-  fn detect<T: OHLCV>(&self, bars: &[T], index: usize, ctx: &MarketContext) -> Option<PatternMatch> {
+  fn detect<T: OHLCV>(
+    &self,
+    bars: &[T],
+    index: usize,
+    ctx: &MarketContext,
+  ) -> Option<PatternMatch> {
     let bar = bars.get(index)?;
     let body = bar.body();
     let range = bar.range();
@@ -62,11 +75,8 @@ impl PatternDetector for DojiDetector {
       return None;
     }
 
-    let strength = if range > 0.0 {
-      1.0 - (body / range / talib::DOJI_RATIO).min(1.0)
-    } else {
-      0.5
-    };
+    let strength =
+      if range > 0.0 { 1.0 - (body / range / talib::DOJI_RATIO).min(1.0) } else { 0.5 };
 
     Some(PatternMatch {
       pattern_id:  PatternDetector::id(self),
@@ -81,7 +91,7 @@ impl PatternDetector for DojiDetector {
 /// CDLDRAGONFLYDOJI - Dragonfly Doji (TA-Lib compatible)
 #[derive(Debug, Clone, Copy)]
 pub struct DragonflyDojiDetector {
-  pub doji_factor: f64,
+  pub doji_factor:             f64,
   pub shadow_veryshort_factor: f64,
 }
 
@@ -94,12 +104,6 @@ impl Default for DragonflyDojiDetector {
   }
 }
 
-impl DragonflyDojiDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for DragonflyDojiDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_DRAGONFLYDOJI")
@@ -109,7 +113,12 @@ impl PatternDetector for DragonflyDojiDetector {
     1
   }
 
-  fn detect<T: OHLCV>(&self, bars: &[T], index: usize, ctx: &MarketContext) -> Option<PatternMatch> {
+  fn detect<T: OHLCV>(
+    &self,
+    bars: &[T],
+    index: usize,
+    ctx: &MarketContext,
+  ) -> Option<PatternMatch> {
     let bar = bars.get(index)?;
     let body = bar.body();
     let upper = bar.upper_shadow();
@@ -125,16 +134,7 @@ impl PatternDetector for DragonflyDojiDetector {
     }
     // TA-Lib: lower shadow must NOT be very short (> ShadowVeryShort)
     // Note: TA-Lib does NOT use ShadowVeryLong here — just checks shadow > ShadowVeryShort threshold
-    let vs_threshold = ctx.avg_range * self.shadow_veryshort_factor;
-    if vs_threshold > 0.0 {
-      if lower <= vs_threshold {
-        return None;
-      }
-    } else if range > 0.0 {
-      if lower / range <= helpers::SHADOW_SHORT_RATIO {
-        return None;
-      }
-    } else {
+    if !shadow_exceeds_veryshort(lower, ctx.avg_range, self.shadow_veryshort_factor, range) {
       return None;
     }
 
@@ -151,7 +151,7 @@ impl PatternDetector for DragonflyDojiDetector {
 /// CDLGRAVESTONEDOJI - Gravestone Doji (TA-Lib compatible)
 #[derive(Debug, Clone, Copy)]
 pub struct GravestoneDojiDetector {
-  pub doji_factor: f64,
+  pub doji_factor:             f64,
   pub shadow_veryshort_factor: f64,
 }
 
@@ -164,12 +164,6 @@ impl Default for GravestoneDojiDetector {
   }
 }
 
-impl GravestoneDojiDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for GravestoneDojiDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_GRAVESTONEDOJI")
@@ -179,7 +173,12 @@ impl PatternDetector for GravestoneDojiDetector {
     1
   }
 
-  fn detect<T: OHLCV>(&self, bars: &[T], index: usize, ctx: &MarketContext) -> Option<PatternMatch> {
+  fn detect<T: OHLCV>(
+    &self,
+    bars: &[T],
+    index: usize,
+    ctx: &MarketContext,
+  ) -> Option<PatternMatch> {
     let bar = bars.get(index)?;
     let body = bar.body();
     let upper = bar.upper_shadow();
@@ -194,16 +193,7 @@ impl PatternDetector for GravestoneDojiDetector {
       return None;
     }
     // TA-Lib: upper shadow must NOT be very short (> ShadowVeryShort)
-    let vs_threshold = ctx.avg_range * self.shadow_veryshort_factor;
-    if vs_threshold > 0.0 {
-      if upper <= vs_threshold {
-        return None;
-      }
-    } else if range > 0.0 {
-      if upper / range <= helpers::SHADOW_SHORT_RATIO {
-        return None;
-      }
-    } else {
+    if !shadow_exceeds_veryshort(upper, ctx.avg_range, self.shadow_veryshort_factor, range) {
       return None;
     }
 
@@ -225,15 +215,7 @@ pub struct LongLeggedDojiDetector {
 
 impl Default for LongLeggedDojiDetector {
   fn default() -> Self {
-    Self {
-      doji_factor: helpers::DOJI_FACTOR,
-    }
-  }
-}
-
-impl LongLeggedDojiDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
+    Self { doji_factor: helpers::DOJI_FACTOR }
   }
 }
 
@@ -246,7 +228,12 @@ impl PatternDetector for LongLeggedDojiDetector {
     1
   }
 
-  fn detect<T: OHLCV>(&self, bars: &[T], index: usize, ctx: &MarketContext) -> Option<PatternMatch> {
+  fn detect<T: OHLCV>(
+    &self,
+    bars: &[T],
+    index: usize,
+    ctx: &MarketContext,
+  ) -> Option<PatternMatch> {
     let bar = bars.get(index)?;
     let body = bar.body();
     let upper = bar.upper_shadow();
@@ -280,16 +267,7 @@ pub struct RickshawManDetector {
 
 impl Default for RickshawManDetector {
   fn default() -> Self {
-    Self {
-      doji_factor: helpers::DOJI_FACTOR,
-      near_factor: helpers::NEAR_FACTOR,
-    }
-  }
-}
-
-impl RickshawManDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
+    Self { doji_factor: helpers::DOJI_FACTOR, near_factor: helpers::NEAR_FACTOR }
   }
 }
 
@@ -302,7 +280,12 @@ impl PatternDetector for RickshawManDetector {
     1
   }
 
-  fn detect<T: OHLCV>(&self, bars: &[T], index: usize, ctx: &MarketContext) -> Option<PatternMatch> {
+  fn detect<T: OHLCV>(
+    &self,
+    bars: &[T],
+    index: usize,
+    _ctx: &MarketContext,
+  ) -> Option<PatternMatch> {
     let bar = bars.get(index)?;
     let body = bar.body();
     let upper = bar.upper_shadow();
@@ -354,9 +337,9 @@ impl PatternDetector for RickshawManDetector {
 /// CDLHAMMER - Hammer (TA-Lib compatible)
 #[derive(Debug, Clone, Copy)]
 pub struct HammerDetector {
-  pub body_short_factor: f64,
+  pub body_short_factor:       f64,
   pub shadow_veryshort_factor: f64,
-  pub near_factor: f64,
+  pub near_factor:             f64,
 }
 
 impl Default for HammerDetector {
@@ -369,12 +352,6 @@ impl Default for HammerDetector {
   }
 }
 
-impl HammerDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for HammerDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_HAMMER")
@@ -384,7 +361,12 @@ impl PatternDetector for HammerDetector {
     2
   }
 
-  fn detect<T: OHLCV>(&self, bars: &[T], index: usize, ctx: &MarketContext) -> Option<PatternMatch> {
+  fn detect<T: OHLCV>(
+    &self,
+    bars: &[T],
+    index: usize,
+    ctx: &MarketContext,
+  ) -> Option<PatternMatch> {
     if index < 1 {
       return None;
     }
@@ -430,9 +412,9 @@ impl PatternDetector for HammerDetector {
 /// CDLHANGINGMAN - Hanging Man (TA-Lib compatible)
 #[derive(Debug, Clone, Copy)]
 pub struct HangingManDetector {
-  pub body_short_factor: f64,
+  pub body_short_factor:       f64,
   pub shadow_veryshort_factor: f64,
-  pub near_factor: f64,
+  pub near_factor:             f64,
 }
 
 impl Default for HangingManDetector {
@@ -445,12 +427,6 @@ impl Default for HangingManDetector {
   }
 }
 
-impl HangingManDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for HangingManDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_HANGINGMAN")
@@ -460,7 +436,12 @@ impl PatternDetector for HangingManDetector {
     2
   }
 
-  fn detect<T: OHLCV>(&self, bars: &[T], index: usize, ctx: &MarketContext) -> Option<PatternMatch> {
+  fn detect<T: OHLCV>(
+    &self,
+    bars: &[T],
+    index: usize,
+    _ctx: &MarketContext,
+  ) -> Option<PatternMatch> {
     if index < 1 {
       return None;
     }
@@ -508,7 +489,7 @@ impl PatternDetector for HangingManDetector {
 /// CDLINVERTEDHAMMER - Inverted Hammer (TA-Lib compatible)
 #[derive(Debug, Clone, Copy)]
 pub struct InvertedHammerDetector {
-  pub body_short_factor: f64,
+  pub body_short_factor:       f64,
   pub shadow_veryshort_factor: f64,
 }
 
@@ -521,12 +502,6 @@ impl Default for InvertedHammerDetector {
   }
 }
 
-impl InvertedHammerDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for InvertedHammerDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_INVERTEDHAMMER")
@@ -536,7 +511,12 @@ impl PatternDetector for InvertedHammerDetector {
     2
   }
 
-  fn detect<T: OHLCV>(&self, bars: &[T], index: usize, ctx: &MarketContext) -> Option<PatternMatch> {
+  fn detect<T: OHLCV>(
+    &self,
+    bars: &[T],
+    index: usize,
+    _ctx: &MarketContext,
+  ) -> Option<PatternMatch> {
     if index < 1 {
       return None;
     }
@@ -584,7 +564,7 @@ impl PatternDetector for InvertedHammerDetector {
 /// CDLSHOOTINGSTAR - Shooting Star (TA-Lib compatible)
 #[derive(Debug, Clone, Copy)]
 pub struct ShootingStarDetector {
-  pub body_short_factor: f64,
+  pub body_short_factor:       f64,
   pub shadow_veryshort_factor: f64,
 }
 
@@ -597,12 +577,6 @@ impl Default for ShootingStarDetector {
   }
 }
 
-impl ShootingStarDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for ShootingStarDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_SHOOTINGSTAR")
@@ -612,7 +586,12 @@ impl PatternDetector for ShootingStarDetector {
     2
   }
 
-  fn detect<T: OHLCV>(&self, bars: &[T], index: usize, ctx: &MarketContext) -> Option<PatternMatch> {
+  fn detect<T: OHLCV>(
+    &self,
+    bars: &[T],
+    index: usize,
+    _ctx: &MarketContext,
+  ) -> Option<PatternMatch> {
     if index < 1 {
       return None;
     }
@@ -660,8 +639,8 @@ impl PatternDetector for ShootingStarDetector {
 /// CDLTAKURI - Takuri (TA-Lib compatible)
 #[derive(Debug, Clone, Copy)]
 pub struct TakuriDetector {
-  pub doji_factor: f64,
-  pub shadow_verylong_factor: f64,
+  pub doji_factor:             f64,
+  pub shadow_verylong_factor:  f64,
   pub shadow_veryshort_factor: f64,
 }
 
@@ -675,12 +654,6 @@ impl Default for TakuriDetector {
   }
 }
 
-impl TakuriDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for TakuriDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_TAKURI")
@@ -690,7 +663,12 @@ impl PatternDetector for TakuriDetector {
     1
   }
 
-  fn detect<T: OHLCV>(&self, bars: &[T], index: usize, _ctx: &MarketContext) -> Option<PatternMatch> {
+  fn detect<T: OHLCV>(
+    &self,
+    bars: &[T],
+    index: usize,
+    _ctx: &MarketContext,
+  ) -> Option<PatternMatch> {
     let bar = bars.get(index)?;
 
     let body = bar.body();
@@ -729,7 +707,7 @@ impl PatternDetector for TakuriDetector {
 /// CDLMARUBOZU - Marubozu (TA-Lib compatible)
 #[derive(Debug, Clone, Copy)]
 pub struct MarubozuDetector {
-  pub body_long_factor: f64,
+  pub body_long_factor:        f64,
   pub shadow_veryshort_factor: f64,
 }
 
@@ -742,12 +720,6 @@ impl Default for MarubozuDetector {
   }
 }
 
-impl MarubozuDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for MarubozuDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_MARUBOZU")
@@ -757,7 +729,12 @@ impl PatternDetector for MarubozuDetector {
     1
   }
 
-  fn detect<T: OHLCV>(&self, bars: &[T], index: usize, ctx: &MarketContext) -> Option<PatternMatch> {
+  fn detect<T: OHLCV>(
+    &self,
+    bars: &[T],
+    index: usize,
+    ctx: &MarketContext,
+  ) -> Option<PatternMatch> {
     let bar = bars.get(index)?;
     let body = bar.body();
     let upper = bar.upper_shadow();
@@ -791,7 +768,7 @@ impl PatternDetector for MarubozuDetector {
 /// CDLCLOSINGMARUBOZU - Closing Marubozu (TA-Lib compatible)
 #[derive(Debug, Clone, Copy)]
 pub struct ClosingMarubozuDetector {
-  pub body_long_factor: f64,
+  pub body_long_factor:        f64,
   pub shadow_veryshort_factor: f64,
 }
 
@@ -804,12 +781,6 @@ impl Default for ClosingMarubozuDetector {
   }
 }
 
-impl ClosingMarubozuDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for ClosingMarubozuDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_CLOSINGMARUBOZU")
@@ -819,7 +790,12 @@ impl PatternDetector for ClosingMarubozuDetector {
     1
   }
 
-  fn detect<T: OHLCV>(&self, bars: &[T], index: usize, ctx: &MarketContext) -> Option<PatternMatch> {
+  fn detect<T: OHLCV>(
+    &self,
+    bars: &[T],
+    index: usize,
+    ctx: &MarketContext,
+  ) -> Option<PatternMatch> {
     let bar = bars.get(index)?;
     let body = bar.body();
     let upper = bar.upper_shadow();
@@ -832,9 +808,15 @@ impl PatternDetector for ClosingMarubozuDetector {
 
     // TA-Lib: close-side shadow must be ShadowVeryShort (< avg_range * 0.1)
     let (direction, valid) = if bar.is_bullish() {
-      (Direction::Bullish, is_shadow_very_short_f(upper, ctx.avg_range, range, self.shadow_veryshort_factor))
+      (
+        Direction::Bullish,
+        is_shadow_very_short_f(upper, ctx.avg_range, range, self.shadow_veryshort_factor),
+      )
     } else {
-      (Direction::Bearish, is_shadow_very_short_f(lower, ctx.avg_range, range, self.shadow_veryshort_factor))
+      (
+        Direction::Bearish,
+        is_shadow_very_short_f(lower, ctx.avg_range, range, self.shadow_veryshort_factor),
+      )
     };
 
     if !valid {
@@ -863,15 +845,7 @@ pub struct LongLineDetector {
 
 impl Default for LongLineDetector {
   fn default() -> Self {
-    Self {
-      body_long_factor: helpers::BODY_LONG_FACTOR,
-    }
-  }
-}
-
-impl LongLineDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
+    Self { body_long_factor: helpers::BODY_LONG_FACTOR }
   }
 }
 
@@ -884,7 +858,12 @@ impl PatternDetector for LongLineDetector {
     1
   }
 
-  fn detect<T: OHLCV>(&self, bars: &[T], index: usize, ctx: &MarketContext) -> Option<PatternMatch> {
+  fn detect<T: OHLCV>(
+    &self,
+    bars: &[T],
+    index: usize,
+    ctx: &MarketContext,
+  ) -> Option<PatternMatch> {
     let bar = bars.get(index)?;
     let body = bar.body();
     let upper = bar.upper_shadow();
@@ -923,15 +902,7 @@ pub struct ShortLineDetector {
 
 impl Default for ShortLineDetector {
   fn default() -> Self {
-    Self {
-      body_short_factor: helpers::BODY_SHORT_FACTOR,
-    }
-  }
-}
-
-impl ShortLineDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
+    Self { body_short_factor: helpers::BODY_SHORT_FACTOR }
   }
 }
 
@@ -944,7 +915,12 @@ impl PatternDetector for ShortLineDetector {
     1
   }
 
-  fn detect<T: OHLCV>(&self, bars: &[T], index: usize, ctx: &MarketContext) -> Option<PatternMatch> {
+  fn detect<T: OHLCV>(
+    &self,
+    bars: &[T],
+    index: usize,
+    _ctx: &MarketContext,
+  ) -> Option<PatternMatch> {
     let bar = bars.get(index)?;
     let body = bar.body();
     let upper = bar.upper_shadow();
@@ -990,15 +966,7 @@ pub struct SpinningTopDetector {
 
 impl Default for SpinningTopDetector {
   fn default() -> Self {
-    Self {
-      body_short_factor: helpers::BODY_SHORT_FACTOR,
-    }
-  }
-}
-
-impl SpinningTopDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
+    Self { body_short_factor: helpers::BODY_SHORT_FACTOR }
   }
 }
 
@@ -1011,7 +979,12 @@ impl PatternDetector for SpinningTopDetector {
     1
   }
 
-  fn detect<T: OHLCV>(&self, bars: &[T], index: usize, _ctx: &MarketContext) -> Option<PatternMatch> {
+  fn detect<T: OHLCV>(
+    &self,
+    bars: &[T],
+    index: usize,
+    _ctx: &MarketContext,
+  ) -> Option<PatternMatch> {
     let bar = bars.get(index)?;
     let body = bar.body();
     let upper = bar.upper_shadow();
@@ -1036,11 +1009,11 @@ impl PatternDetector for SpinningTopDetector {
     let direction = if bar.close() >= bar.open() { Direction::Bullish } else { Direction::Bearish };
 
     Some(PatternMatch {
-      pattern_id:  PatternDetector::id(self),
+      pattern_id: PatternDetector::id(self),
       direction,
-      strength:    0.5,
+      strength: 0.5,
       start_index: index,
-      end_index:   index,
+      end_index: index,
     })
   }
 }
@@ -1048,7 +1021,7 @@ impl PatternDetector for SpinningTopDetector {
 /// CDLHIGHWAVE - High-Wave Candle (TA-Lib compatible)
 #[derive(Debug, Clone, Copy)]
 pub struct HighWaveDetector {
-  pub body_short_factor: f64,
+  pub body_short_factor:      f64,
   pub shadow_verylong_factor: f64,
 }
 
@@ -1061,12 +1034,6 @@ impl Default for HighWaveDetector {
   }
 }
 
-impl HighWaveDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for HighWaveDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_HIGHWAVE")
@@ -1076,7 +1043,12 @@ impl PatternDetector for HighWaveDetector {
     1
   }
 
-  fn detect<T: OHLCV>(&self, bars: &[T], index: usize, ctx: &MarketContext) -> Option<PatternMatch> {
+  fn detect<T: OHLCV>(
+    &self,
+    bars: &[T],
+    index: usize,
+    _ctx: &MarketContext,
+  ) -> Option<PatternMatch> {
     let bar = bars.get(index)?;
     let body = bar.body();
     let upper = bar.upper_shadow();
@@ -1100,11 +1072,11 @@ impl PatternDetector for HighWaveDetector {
     let direction = if bar.close() >= bar.open() { Direction::Bullish } else { Direction::Bearish };
 
     Some(PatternMatch {
-      pattern_id:  PatternDetector::id(self),
+      pattern_id: PatternDetector::id(self),
       direction,
-      strength:    0.6,
+      strength: 0.6,
       start_index: index,
-      end_index:   index,
+      end_index: index,
     })
   }
 }
@@ -1116,7 +1088,7 @@ impl PatternDetector for HighWaveDetector {
 /// CDLBELTHOLD - Belt Hold (TA-Lib compatible)
 #[derive(Debug, Clone, Copy)]
 pub struct BeltHoldDetector {
-  pub body_long_factor: f64,
+  pub body_long_factor:        f64,
   pub shadow_veryshort_factor: f64,
 }
 
@@ -1129,12 +1101,6 @@ impl Default for BeltHoldDetector {
   }
 }
 
-impl BeltHoldDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for BeltHoldDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_BELTHOLD")
@@ -1144,7 +1110,12 @@ impl PatternDetector for BeltHoldDetector {
     1
   }
 
-  fn detect<T: OHLCV>(&self, bars: &[T], index: usize, ctx: &MarketContext) -> Option<PatternMatch> {
+  fn detect<T: OHLCV>(
+    &self,
+    bars: &[T],
+    index: usize,
+    ctx: &MarketContext,
+  ) -> Option<PatternMatch> {
     let bar = bars.get(index)?;
     let body = bar.body();
     let upper = bar.upper_shadow();
@@ -1157,9 +1128,15 @@ impl PatternDetector for BeltHoldDetector {
 
     // TA-Lib: open-side shadow must be ShadowVeryShort (< avg_range * 0.1)
     let (direction, valid) = if bar.is_bullish() {
-      (Direction::Bullish, is_shadow_very_short_f(lower, ctx.avg_range, range, self.shadow_veryshort_factor))
+      (
+        Direction::Bullish,
+        is_shadow_very_short_f(lower, ctx.avg_range, range, self.shadow_veryshort_factor),
+      )
     } else if bar.is_bearish() {
-      (Direction::Bearish, is_shadow_very_short_f(upper, ctx.avg_range, range, self.shadow_veryshort_factor))
+      (
+        Direction::Bearish,
+        is_shadow_very_short_f(upper, ctx.avg_range, range, self.shadow_veryshort_factor),
+      )
     } else {
       return None;
     };

@@ -1,6 +1,8 @@
 # YACPD - Yet Another Candlestick Pattern Detector
 
-[![CI](https://github.com/user/yacpd/actions/workflows/ci.yml/badge.svg)](https://github.com/user/yacpd/actions/workflows/ci.yml)
+[![CI](https://github.com/7jrxt42BxFZo4iAnN4CX/yacpd/actions/workflows/ci.yml/badge.svg)](https://github.com/7jrxt42BxFZo4iAnN4CX/yacpd/actions/workflows/ci.yml)
+[![crates.io](https://img.shields.io/crates/v/yacpd.svg)](https://crates.io/crates/yacpd)
+[![docs.rs](https://docs.rs/yacpd/badge.svg)](https://docs.rs/yacpd)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 High-performance candlestick pattern detection library for Rust.
@@ -415,6 +417,11 @@ cargo bench
 | Doji detection (1000 bars) | ~50µs |
 | All patterns (1000 bars) | ~2ms |
 | Parallel scan (4 instruments × 1000 bars) | ~3ms |
+
+## Support
+
+- [Boosty](https://boosty.to/nalofc/donate)
+- ETH: `0x8DE690f1B58F31451b30862A18bae0845Da4026f`
 
 ## License
 

@@ -12,6 +12,15 @@
 
 pub mod helpers;
 
+/// Generate `with_defaults()` -> `Self::default()` for multiple detector types.
+macro_rules! impl_with_defaults {
+  ($($detector:ty),* $(,)?) => {
+    $(impl $detector {
+      pub fn with_defaults() -> Self { Self::default() }
+    })*
+  };
+}
+
 pub mod extended;
 pub mod multi_bar;
 pub mod single_bar;

@@ -98,10 +98,7 @@ fn fires_at_last(detector: BuiltinDetector, bars: &[TestBar]) -> bool {
 #[test]
 fn test_black_candle_positive() {
   let bars = vec![TestBar::new(105.0, 106.0, 99.0, 100.0)]; // close < open
-  assert!(fires_at_last(
-    BuiltinDetector::BlackCandle(BlackCandleDetector::with_defaults()),
-    &bars
-  ));
+  assert!(fires_at_last(BuiltinDetector::BlackCandle(BlackCandleDetector::with_defaults()), &bars));
 }
 
 #[test]
@@ -118,10 +115,7 @@ fn test_black_candle_negative() {
 #[test]
 fn test_white_candle_positive() {
   let bars = vec![TestBar::new(100.0, 106.0, 99.0, 105.0)]; // close > open
-  assert!(fires_at_last(
-    BuiltinDetector::WhiteCandle(WhiteCandleDetector::with_defaults()),
-    &bars
-  ));
+  assert!(fires_at_last(BuiltinDetector::WhiteCandle(WhiteCandleDetector::with_defaults()), &bars));
 }
 
 #[test]
@@ -139,30 +133,21 @@ fn test_white_candle_negative() {
 fn test_short_black_positive() {
   // Bearish, small body relative to range: body=1, range=10 -> ratio=0.1 < 0.3
   let bars = vec![TestBar::new(101.0, 105.0, 95.0, 100.0)];
-  assert!(fires_at_last(
-    BuiltinDetector::ShortBlack(ShortBlackDetector::with_defaults()),
-    &bars
-  ));
+  assert!(fires_at_last(BuiltinDetector::ShortBlack(ShortBlackDetector::with_defaults()), &bars));
 }
 
 #[test]
 fn test_short_black_negative_bullish() {
   // Bullish candle - not a black candle
   let bars = vec![TestBar::new(100.0, 105.0, 95.0, 101.0)];
-  assert!(!fires_at_last(
-    BuiltinDetector::ShortBlack(ShortBlackDetector::with_defaults()),
-    &bars
-  ));
+  assert!(!fires_at_last(BuiltinDetector::ShortBlack(ShortBlackDetector::with_defaults()), &bars));
 }
 
 #[test]
 fn test_short_black_negative_long_body() {
   // Large body: body=9, range=10 -> ratio=0.9 > 0.3
   let bars = vec![TestBar::new(109.0, 110.0, 100.0, 100.5)];
-  assert!(!fires_at_last(
-    BuiltinDetector::ShortBlack(ShortBlackDetector::with_defaults()),
-    &bars
-  ));
+  assert!(!fires_at_last(BuiltinDetector::ShortBlack(ShortBlackDetector::with_defaults()), &bars));
 }
 
 // --- ShortWhite ---
@@ -171,20 +156,14 @@ fn test_short_black_negative_long_body() {
 fn test_short_white_positive() {
   // Bullish, small body: body=1, range=10 -> ratio=0.1 < 0.3
   let bars = vec![TestBar::new(100.0, 105.0, 95.0, 101.0)];
-  assert!(fires_at_last(
-    BuiltinDetector::ShortWhite(ShortWhiteDetector::with_defaults()),
-    &bars
-  ));
+  assert!(fires_at_last(BuiltinDetector::ShortWhite(ShortWhiteDetector::with_defaults()), &bars));
 }
 
 #[test]
 fn test_short_white_negative_long_body() {
   // Large body: body=9, range=10 -> ratio=0.9 > 0.3
   let bars = vec![TestBar::new(100.5, 110.0, 100.0, 109.0)];
-  assert!(!fires_at_last(
-    BuiltinDetector::ShortWhite(ShortWhiteDetector::with_defaults()),
-    &bars
-  ));
+  assert!(!fires_at_last(BuiltinDetector::ShortWhite(ShortWhiteDetector::with_defaults()), &bars));
 }
 
 // --- LongBlackDay ---
@@ -369,7 +348,7 @@ fn test_white_spinning_top_negative_large_body() {
 #[test]
 fn test_northern_doji_positive() {
   let mut bars = make_uptrend(15); // Strong uptrend
-  // Add doji at top: body=0, range=10
+                                   // Add doji at top: body=0, range=10
   bars.push(TestBar::new(130.0, 135.0, 125.0, 130.0));
   assert!(fires_at_last(
     BuiltinDetector::NorthernDoji(NorthernDojiDetector::with_defaults()),
@@ -457,7 +436,7 @@ fn test_falling_window_negative_no_gap() {
 #[test]
 fn test_rising_window_positive() {
   let bars = vec![
-    TestBar::new(98.0, 100.0, 95.0, 99.0),   // first
+    TestBar::new(98.0, 100.0, 95.0, 99.0),    // first
     TestBar::new(102.0, 108.0, 101.0, 107.0), // gap up: low(101) > high(100)
   ];
   assert!(fires_at_last(
@@ -522,7 +501,7 @@ fn test_gapping_down_doji_negative_not_doji() {
 #[test]
 fn test_gapping_up_doji_positive() {
   let bars = vec![
-    TestBar::new(98.0, 100.0, 95.0, 99.0),   // normal bar
+    TestBar::new(98.0, 100.0, 95.0, 99.0),    // normal bar
     TestBar::new(102.0, 107.0, 101.0, 102.0), // doji with gap: low(101) > high(100)
   ];
   assert!(fires_at_last(
@@ -551,7 +530,7 @@ fn test_above_the_stomach_positive() {
   let mut bars = make_downtrend(15);
   // Previous: bearish with midpoint around 70.5
   bars.push(TestBar::new(72.0, 73.0, 69.0, 69.5)); // bearish: O=72, C=69.5, mid=70.75
-  // Current: bullish, opens above midpoint
+                                                   // Current: bullish, opens above midpoint
   bars.push(TestBar::new(71.0, 74.0, 70.0, 73.0));
   assert!(fires_at_last(
     BuiltinDetector::AboveTheStomach(AboveTheStomachDetector::with_defaults()),
@@ -769,9 +748,9 @@ fn test_collapsing_doji_star_bullish_positive() {
   // Doji: gaps down, high < 100, body tiny. Gap = 100 - doji.high >= 10*0.005 = 0.05
   // Third: bullish, closes above first's close (100)
   let bars = vec![
-    TestBar::new(110.0, 111.0, 99.0, 100.0),  // bearish, body=10
-    TestBar::new(99.8, 99.9, 98.0, 99.8),     // doji: gap = 100 - 99.9 = 0.1 > 0.05
-    TestBar::new(99.0, 106.0, 98.0, 105.0),   // bullish, closes > 100
+    TestBar::new(110.0, 111.0, 99.0, 100.0), // bearish, body=10
+    TestBar::new(99.8, 99.9, 98.0, 99.8),    // doji: gap = 100 - 99.9 = 0.1 > 0.05
+    TestBar::new(99.0, 106.0, 98.0, 105.0),  // bullish, closes > 100
   ];
   assert!(fires_at_last(
     BuiltinDetector::CollapsingDojiStar(CollapsingDojiStarDetector::with_defaults()),
@@ -783,7 +762,7 @@ fn test_collapsing_doji_star_bullish_positive() {
 fn test_collapsing_doji_star_bearish_positive() {
   // Bullish first, gap up to doji, then bearish reversal
   let bars = vec![
-    TestBar::new(100.0, 111.0, 99.0, 110.0),  // bullish, body=10
+    TestBar::new(100.0, 111.0, 99.0, 110.0),   // bullish, body=10
     TestBar::new(110.1, 112.0, 110.1, 110.15), // doji gapping up: low(110.1) > max(100,110)=110
     TestBar::new(111.0, 111.5, 104.0, 105.0),  // bearish, closes < 110
   ];
@@ -949,8 +928,8 @@ fn test_downside_gap_three_methods_negative_no_gap() {
 #[test]
 fn test_upside_gap_three_methods_positive() {
   let bars = vec![
-    TestBar::new(100.0, 107.0, 99.0, 106.0),   // first bullish: O=100, C=106
-    TestBar::new(109.0, 115.0, 108.0, 114.0),   // second bullish: gap up (L=108 > H=107)
+    TestBar::new(100.0, 107.0, 99.0, 106.0), // first bullish: O=100, C=106
+    TestBar::new(109.0, 115.0, 108.0, 114.0), // second bullish: gap up (L=108 > H=107)
     // Third bearish: opens in second body (109..114), closes in first body (100..106)
     TestBar::new(112.0, 113.0, 102.0, 103.0),
   ];
@@ -1011,7 +990,7 @@ fn test_downside_tasuki_gap_negative_gap_closed() {
 fn test_upside_tasuki_gap_positive() {
   let bars = vec![
     TestBar::new(100.0, 107.0, 99.0, 106.0),  // first bullish
-    TestBar::new(109.0, 115.0, 108.0, 114.0),  // second bullish: gap up (L=108 > H=107)
+    TestBar::new(109.0, 115.0, 108.0, 114.0), // second bullish: gap up (L=108 > H=107)
     // Third bearish: partially fills gap
     // gap_bottom=107, gap_top=108, gap_size=1
     // fill_amount = gap_top - close = 108 - 107.5 = 0.5, fill_pct = 0.5 < 0.7
@@ -1085,19 +1064,16 @@ fn test_price_lines_bearish_positive() {
 fn test_price_lines_negative_mixed() {
   // Mix of bullish and bearish — should not fire
   let bars = vec![
-    TestBar::new(100.0, 102.0, 99.0, 101.0), // bullish
+    TestBar::new(100.0, 102.0, 99.0, 101.0),  // bullish
     TestBar::new(101.0, 103.0, 100.0, 100.5), // bearish
-    TestBar::new(100.5, 102.5, 99.5, 101.5), // bullish
+    TestBar::new(100.5, 102.5, 99.5, 101.5),  // bullish
     TestBar::new(101.5, 103.5, 100.5, 101.0), // bearish
     TestBar::new(101.0, 103.0, 100.0, 102.0), // bullish
     TestBar::new(102.0, 104.0, 101.0, 101.5), // bearish
     TestBar::new(101.5, 103.5, 100.5, 102.5), // bullish
     TestBar::new(102.5, 104.5, 101.5, 102.0), // bearish
   ];
-  assert!(!fires_at_last(
-    BuiltinDetector::PriceLines(PriceLinesDetector::with_defaults()),
-    &bars
-  ));
+  assert!(!fires_at_last(BuiltinDetector::PriceLines(PriceLinesDetector::with_defaults()), &bars));
 }
 
 #[test]
@@ -1109,10 +1085,7 @@ fn test_price_lines_negative_only_7() {
       TestBar::new(base, base + 1.5, base - 0.5, base + 1.0)
     })
     .collect();
-  assert!(!fires_at_last(
-    BuiltinDetector::PriceLines(PriceLinesDetector::with_defaults()),
-    &bars
-  ));
+  assert!(!fires_at_last(BuiltinDetector::PriceLines(PriceLinesDetector::with_defaults()), &bars));
 }
 
 // ============================================================

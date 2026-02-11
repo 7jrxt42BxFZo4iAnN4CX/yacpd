@@ -39,13 +39,13 @@ pub enum ParamType {
 #[derive(Debug, Clone)]
 pub struct ParamMeta {
   /// Parameter name (e.g., "min_engulf_ratio")
-  pub name: &'static str,
+  pub name:        &'static str,
   /// Parameter type (Ratio or Period)
-  pub param_type: ParamType,
+  pub param_type:  ParamType,
   /// Default value
-  pub default: f64,
+  pub default:     f64,
   /// Range for optimization: (min, max, step)
-  pub range: (f64, f64, f64),
+  pub range:       (f64, f64, f64),
   /// Human-readable description
   pub description: &'static str,
 }
@@ -74,7 +74,7 @@ impl ParamMeta {
   /// Generate all values for grid search
   pub fn generate_grid(&self) -> Vec<f64> {
     let (min, max, step) = self.range;
-    let mut values = Vec::new();
+    let mut values = Vec::with_capacity(((max - min) / step).ceil() as usize + 1);
     let mut v = min;
     while v <= max + f64::EPSILON {
       values.push(v);

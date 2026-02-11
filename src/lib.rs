@@ -36,7 +36,7 @@ pub mod prelude {
   pub use crate::{// Detectors
                   detectors::*,
                   // Parameters
-                  params::{ParamMeta, ParamType, ParameterizedDetector, get_period, get_ratio},
+                  params::{get_period, get_ratio, ParamMeta, ParamType, ParameterizedDetector},
                   // Parallel
                   scan_parallel,
                   // Iterator
@@ -315,39 +315,105 @@ impl PatternId {
   pub fn typical_direction(&self) -> Option<Direction> {
     match self.0 {
       // Bullish patterns
-      "CDL_3WHITESOLDIERS" | "CDL_3STARSINSOUTH" | "CDL_HAMMER" | "CDL_INVERTEDHAMMER"
-      | "CDL_MORNINGSTAR" | "CDL_MORNINGDOJISTAR" | "CDL_PIERCING" | "CDL_LADDERBOTTOM"
-      | "CDL_HOMINGPIGEON" | "CDL_TAKURI" | "CDL_UNIQUE3RIVER" | "CDL_MATCHINGLOW"
-      | "CDL_STICKSANDWICH" | "CDL_DRAGONFLYDOJI" | "CDL_MATHOLD" | "CDL_GAPSIDESIDEWHITE"
-      | "RISING_WINDOW" | "GAPPING_UP_DOJI" | "WHITE_MARUBOZU" | "OPENING_WHITE_MARUBOZU"
-      | "LONG_WHITE_DAY" | "WHITE_CANDLE" | "WHITE_SPINNING_TOP" | "SHORT_WHITE"
-      | "ABOVE_THE_STOMACH" | "LAST_ENGULFING_BOTTOM" | "MEETING_LINES_BULLISH"
-      | "UPSIDE_TASUKI_GAP" | "UPSIDE_GAP_THREE_METHODS" | "CDL_TWEEZERBOTTOM" => {
-        Some(Direction::Bullish)
-      },
+      "CDL_3WHITESOLDIERS"
+      | "CDL_3STARSINSOUTH"
+      | "CDL_HAMMER"
+      | "CDL_INVERTEDHAMMER"
+      | "CDL_MORNINGSTAR"
+      | "CDL_MORNINGDOJISTAR"
+      | "CDL_PIERCING"
+      | "CDL_LADDERBOTTOM"
+      | "CDL_HOMINGPIGEON"
+      | "CDL_TAKURI"
+      | "CDL_UNIQUE3RIVER"
+      | "CDL_MATCHINGLOW"
+      | "CDL_STICKSANDWICH"
+      | "CDL_DRAGONFLYDOJI"
+      | "CDL_MATHOLD"
+      | "CDL_GAPSIDESIDEWHITE"
+      | "RISING_WINDOW"
+      | "GAPPING_UP_DOJI"
+      | "WHITE_MARUBOZU"
+      | "OPENING_WHITE_MARUBOZU"
+      | "LONG_WHITE_DAY"
+      | "WHITE_CANDLE"
+      | "WHITE_SPINNING_TOP"
+      | "SHORT_WHITE"
+      | "ABOVE_THE_STOMACH"
+      | "LAST_ENGULFING_BOTTOM"
+      | "MEETING_LINES_BULLISH"
+      | "UPSIDE_TASUKI_GAP"
+      | "UPSIDE_GAP_THREE_METHODS"
+      | "CDL_TWEEZERBOTTOM" => Some(Direction::Bullish),
       // Bearish patterns
-      "CDL_3BLACKCROWS" | "CDL_2CROWS" | "CDL_IDENTICAL3CROWS" | "CDL_EVENINGSTAR"
-      | "CDL_EVENINGDOJISTAR" | "CDL_SHOOTINGSTAR" | "CDL_HANGINGMAN" | "CDL_DARKCLOUDCOVER"
-      | "CDL_ADVANCEBLOCK" | "CDL_STALLEDPATTERN" | "CDL_UPSIDEGAP2CROWS" | "CDL_THRUSTING"
-      | "CDL_INNECK" | "CDL_ONNECK" | "CDL_CONCEALBABYSWALL" | "CDL_GRAVESTONEDOJI"
-      | "FALLING_WINDOW" | "GAPPING_DOWN_DOJI" | "BLACK_MARUBOZU" | "OPENING_BLACK_MARUBOZU"
-      | "LONG_BLACK_DAY" | "BLACK_CANDLE" | "BLACK_SPINNING_TOP" | "SHORT_BLACK"
-      | "BELOW_THE_STOMACH" | "LAST_ENGULFING_TOP" | "MEETING_LINES_BEARISH"
-      | "DOWNSIDE_TASUKI_GAP" | "DOWNSIDE_GAP_THREE_METHODS" | "TWO_BLACK_GAPPING"
-      | "SHOOTING_STAR_2_LINES" | "COLLAPSING_DOJI_STAR" | "DELIBERATION"
+      "CDL_3BLACKCROWS"
+      | "CDL_2CROWS"
+      | "CDL_IDENTICAL3CROWS"
+      | "CDL_EVENINGSTAR"
+      | "CDL_EVENINGDOJISTAR"
+      | "CDL_SHOOTINGSTAR"
+      | "CDL_HANGINGMAN"
+      | "CDL_DARKCLOUDCOVER"
+      | "CDL_ADVANCEBLOCK"
+      | "CDL_STALLEDPATTERN"
+      | "CDL_UPSIDEGAP2CROWS"
+      | "CDL_THRUSTING"
+      | "CDL_INNECK"
+      | "CDL_ONNECK"
+      | "CDL_CONCEALBABYSWALL"
+      | "CDL_GRAVESTONEDOJI"
+      | "FALLING_WINDOW"
+      | "GAPPING_DOWN_DOJI"
+      | "BLACK_MARUBOZU"
+      | "OPENING_BLACK_MARUBOZU"
+      | "LONG_BLACK_DAY"
+      | "BLACK_CANDLE"
+      | "BLACK_SPINNING_TOP"
+      | "SHORT_BLACK"
+      | "BELOW_THE_STOMACH"
+      | "LAST_ENGULFING_TOP"
+      | "MEETING_LINES_BEARISH"
+      | "DOWNSIDE_TASUKI_GAP"
+      | "DOWNSIDE_GAP_THREE_METHODS"
+      | "TWO_BLACK_GAPPING"
+      | "SHOOTING_STAR_2_LINES"
+      | "COLLAPSING_DOJI_STAR"
+      | "DELIBERATION"
       | "CDL_TWEEZERTOP" => Some(Direction::Bearish),
       // Neutral patterns
-      "CDL_DOJI" | "CDL_LONGLEGGEDDOJI" | "CDL_RICKSHAWMAN" | "CDL_HIGHWAVE"
-      | "CDL_SPINNINGTOP" | "CDL_CLOSINGMARUBOZU" | "CDL_MARUBOZU" | "CDL_LONGLINE"
-      | "CDL_SHORTLINE" | "PRICE_LINES" | "NORTHERN_DOJI" | "SOUTHERN_DOJI" => {
-        Some(Direction::Neutral)
-      },
+      "CDL_DOJI"
+      | "CDL_LONGLEGGEDDOJI"
+      | "CDL_RICKSHAWMAN"
+      | "CDL_HIGHWAVE"
+      | "CDL_SPINNINGTOP"
+      | "CDL_CLOSINGMARUBOZU"
+      | "CDL_MARUBOZU"
+      | "CDL_LONGLINE"
+      | "CDL_SHORTLINE"
+      | "PRICE_LINES"
+      | "NORTHERN_DOJI"
+      | "SOUTHERN_DOJI" => Some(Direction::Neutral),
       // Bidirectional patterns (return None)
-      "CDL_ENGULFING" | "CDL_3INSIDE" | "CDL_3OUTSIDE" | "CDL_3LINESTRIKE" | "CDL_HARAMI"
-      | "CDL_HARAMICROSS" | "CDL_KICKING" | "CDL_KICKINGBYLENGTH" | "CDL_BELTHOLD"
-      | "CDL_COUNTERATTACK" | "CDL_SEPARATINGLINES" | "CDL_RISEFALL3METHODS"
-      | "CDL_BREAKAWAY" | "CDL_ABANDONEDBABY" | "CDL_TASUKIGAP" | "CDL_XSIDEGAP3METHODS"
-      | "CDL_HIKKAKE" | "CDL_HIKKAKEMOD" | "CDL_TRISTAR" | "CDL_DOJISTAR" => None,
+      "CDL_ENGULFING"
+      | "CDL_3INSIDE"
+      | "CDL_3OUTSIDE"
+      | "CDL_3LINESTRIKE"
+      | "CDL_HARAMI"
+      | "CDL_HARAMICROSS"
+      | "CDL_KICKING"
+      | "CDL_KICKINGBYLENGTH"
+      | "CDL_BELTHOLD"
+      | "CDL_COUNTERATTACK"
+      | "CDL_SEPARATINGLINES"
+      | "CDL_RISEFALL3METHODS"
+      | "CDL_BREAKAWAY"
+      | "CDL_ABANDONEDBABY"
+      | "CDL_TASUKIGAP"
+      | "CDL_XSIDEGAP3METHODS"
+      | "CDL_HIKKAKE"
+      | "CDL_HIKKAKEMOD"
+      | "CDL_TRISTAR"
+      | "CDL_DOJISTAR" => None,
       // Default to None for unknown patterns
       _ => None,
     }
@@ -529,7 +595,7 @@ impl ContextProvider for DefaultContextProvider {
       };
 
       contexts.push(MarketContext {
-        trend:      self.compute_trend(bars, i),
+        trend: self.compute_trend(bars, i),
         volatility: self.compute_volatility(bars, i),
         avg_volume: self.compute_avg_volume(bars, i),
         avg_body,
@@ -593,7 +659,6 @@ impl DefaultContextProvider {
     let sum: f64 = bars[start..=index].iter().map(|b| b.volume()).sum();
     sum / (index - start + 1) as f64
   }
-
 }
 
 // ============================================================
@@ -1150,6 +1215,13 @@ impl EngineBuilder<DefaultContextProvider> {
   }
 }
 
+/// Generate an array of `BuiltinDetector` variants using `Default::default()` for each inner type.
+macro_rules! builtin_defaults {
+  ($($variant:ident),* $(,)?) => {
+    [$(BuiltinDetector::$variant(Default::default())),*]
+  };
+}
+
 impl<C: ContextProvider> EngineBuilder<C> {
   /// Change context provider
   pub fn context_provider<C2: ContextProvider>(self, provider: C2) -> EngineBuilder<C2> {
@@ -1161,241 +1233,143 @@ impl<C: ContextProvider> EngineBuilder<C> {
     }
   }
 
-  /// Add all 61 builtin patterns with default configurations
-  pub fn with_all_defaults(mut self) -> Self {
-    self.builtin.extend([
-      // Single bar (17)
-      BuiltinDetector::Doji(DojiDetector::with_defaults()),
-      BuiltinDetector::DragonflyDoji(DragonflyDojiDetector::with_defaults()),
-      BuiltinDetector::GravestoneDoji(GravestoneDojiDetector::with_defaults()),
-      BuiltinDetector::LongLeggedDoji(LongLeggedDojiDetector::with_defaults()),
-      BuiltinDetector::RickshawMan(RickshawManDetector::with_defaults()),
-      BuiltinDetector::Hammer(HammerDetector::with_defaults()),
-      BuiltinDetector::HangingMan(HangingManDetector::with_defaults()),
-      BuiltinDetector::InvertedHammer(InvertedHammerDetector::with_defaults()),
-      BuiltinDetector::ShootingStar(ShootingStarDetector::with_defaults()),
-      BuiltinDetector::Takuri(TakuriDetector::with_defaults()),
-      BuiltinDetector::Marubozu(MarubozuDetector::with_defaults()),
-      BuiltinDetector::ClosingMarubozu(ClosingMarubozuDetector::with_defaults()),
-      BuiltinDetector::LongLine(LongLineDetector::with_defaults()),
-      BuiltinDetector::ShortLine(ShortLineDetector::with_defaults()),
-      BuiltinDetector::SpinningTop(SpinningTopDetector::with_defaults()),
-      BuiltinDetector::HighWave(HighWaveDetector::with_defaults()),
-      BuiltinDetector::BeltHold(BeltHoldDetector::with_defaults()),
-      // Two bar (17)
-      BuiltinDetector::Engulfing(EngulfingDetector::with_defaults()),
-      BuiltinDetector::Harami(HaramiDetector::with_defaults()),
-      BuiltinDetector::HaramiCross(HaramiCrossDetector::with_defaults()),
-      BuiltinDetector::Piercing(PiercingDetector::with_defaults()),
-      BuiltinDetector::DarkCloudCover(DarkCloudCoverDetector::with_defaults()),
-      BuiltinDetector::DojiStar(DojiStarDetector::with_defaults()),
-      BuiltinDetector::Counterattack(CounterattackDetector::with_defaults()),
-      BuiltinDetector::InNeck(InNeckDetector::with_defaults()),
-      BuiltinDetector::OnNeck(OnNeckDetector::with_defaults()),
-      BuiltinDetector::Thrusting(ThrustingDetector::with_defaults()),
-      BuiltinDetector::Kicking(KickingDetector::with_defaults()),
-      BuiltinDetector::KickingByLength(KickingByLengthDetector::with_defaults()),
-      BuiltinDetector::MatchingLow(MatchingLowDetector::with_defaults()),
-      BuiltinDetector::HomingPigeon(HomingPigeonDetector::with_defaults()),
-      BuiltinDetector::SeparatingLines(SeparatingLinesDetector::with_defaults()),
-      BuiltinDetector::GapSideSideWhite(GapSideSideWhiteDetector::with_defaults()),
-      BuiltinDetector::TweezerTop(TweezerTopDetector::with_defaults()),
-      BuiltinDetector::TweezerBottom(TweezerBottomDetector::with_defaults()),
-      // Three bar (22)
-      BuiltinDetector::ThreeWhiteSoldiers(ThreeWhiteSoldiersDetector::with_defaults()),
-      BuiltinDetector::ThreeBlackCrows(ThreeBlackCrowsDetector::with_defaults()),
-      BuiltinDetector::ThreeInside(ThreeInsideDetector::with_defaults()),
-      BuiltinDetector::ThreeOutside(ThreeOutsideDetector::with_defaults()),
-      BuiltinDetector::ThreeLineStrike(ThreeLineStrikeDetector::with_defaults()),
-      BuiltinDetector::ThreeStarsInSouth(ThreeStarsInSouthDetector::with_defaults()),
-      BuiltinDetector::MorningStar(MorningStarDetector::with_defaults()),
-      BuiltinDetector::EveningStar(EveningStarDetector::with_defaults()),
-      BuiltinDetector::MorningDojiStar(MorningDojiStarDetector::with_defaults()),
-      BuiltinDetector::EveningDojiStar(EveningDojiStarDetector::with_defaults()),
-      BuiltinDetector::AbandonedBaby(AbandonedBabyDetector::with_defaults()),
-      BuiltinDetector::TwoCrows(TwoCrowsDetector::with_defaults()),
-      BuiltinDetector::UpsideGapTwoCrows(UpsideGapTwoCrowsDetector::with_defaults()),
-      BuiltinDetector::IdenticalThreeCrows(IdenticalThreeCrowsDetector::with_defaults()),
-      BuiltinDetector::AdvanceBlock(AdvanceBlockDetector::with_defaults()),
-      BuiltinDetector::StalledPattern(StalledPatternDetector::with_defaults()),
-      BuiltinDetector::StickSandwich(StickSandwichDetector::with_defaults()),
-      BuiltinDetector::TasukiGap(TasukiGapDetector::with_defaults()),
-      BuiltinDetector::Tristar(TristarDetector::with_defaults()),
-      BuiltinDetector::Unique3River(Unique3RiverDetector::with_defaults()),
-      // Multi-bar (8)
-      BuiltinDetector::Breakaway(BreakawayDetector::with_defaults()),
-      BuiltinDetector::ConcealingBabySwallow(ConcealingBabySwallowDetector::with_defaults()),
-      BuiltinDetector::Hikkake(HikkakeDetector::with_defaults()),
-      BuiltinDetector::HikkakeMod(HikkakeModDetector::with_defaults()),
-      BuiltinDetector::LadderBottom(LadderBottomDetector::with_defaults()),
-      BuiltinDetector::MatHold(MatHoldDetector::with_defaults()),
-      BuiltinDetector::RiseFallThreeMethods(RiseFallThreeMethodsDetector::with_defaults()),
-      BuiltinDetector::XSideGapThreeMethods(XSideGapThreeMethodsDetector::with_defaults()),
-      // Extended patterns
-      BuiltinDetector::PriceLines(PriceLinesDetector::with_defaults()),
-      BuiltinDetector::FallingWindow(FallingWindowDetector::with_defaults()),
-      BuiltinDetector::RisingWindow(RisingWindowDetector::with_defaults()),
-      BuiltinDetector::GappingDownDoji(GappingDownDojiDetector::with_defaults()),
-      BuiltinDetector::GappingUpDoji(GappingUpDojiDetector::with_defaults()),
-      BuiltinDetector::AboveTheStomach(AboveTheStomachDetector::with_defaults()),
-      BuiltinDetector::BelowTheStomach(BelowTheStomachDetector::with_defaults()),
-      BuiltinDetector::CollapsingDojiStar(CollapsingDojiStarDetector::with_defaults()),
-      BuiltinDetector::Deliberation(DeliberationDetector::with_defaults()),
-      BuiltinDetector::LastEngulfingBottom(LastEngulfingBottomDetector::with_defaults()),
-      BuiltinDetector::LastEngulfingTop(LastEngulfingTopDetector::with_defaults()),
-      BuiltinDetector::TwoBlackGapping(TwoBlackGappingDetector::with_defaults()),
-      BuiltinDetector::MeetingLinesBearish(MeetingLinesBearishDetector::with_defaults()),
-      BuiltinDetector::MeetingLinesBullish(MeetingLinesBullishDetector::with_defaults()),
-      BuiltinDetector::NorthernDoji(NorthernDojiDetector::with_defaults()),
-      BuiltinDetector::SouthernDoji(SouthernDojiDetector::with_defaults()),
-      BuiltinDetector::BlackMarubozu(BlackMarubozuDetector::with_defaults()),
-      BuiltinDetector::WhiteMarubozu(WhiteMarubozuDetector::with_defaults()),
-      BuiltinDetector::OpeningBlackMarubozu(OpeningBlackMarubozuDetector::with_defaults()),
-      BuiltinDetector::OpeningWhiteMarubozu(OpeningWhiteMarubozuDetector::with_defaults()),
-      BuiltinDetector::BlackCandle(BlackCandleDetector::with_defaults()),
-      BuiltinDetector::WhiteCandle(WhiteCandleDetector::with_defaults()),
-      BuiltinDetector::ShortBlack(ShortBlackDetector::with_defaults()),
-      BuiltinDetector::ShortWhite(ShortWhiteDetector::with_defaults()),
-      BuiltinDetector::LongBlackDay(LongBlackDayDetector::with_defaults()),
-      BuiltinDetector::LongWhiteDay(LongWhiteDayDetector::with_defaults()),
-      BuiltinDetector::BlackSpinningTop(BlackSpinningTopDetector::with_defaults()),
-      BuiltinDetector::WhiteSpinningTop(WhiteSpinningTopDetector::with_defaults()),
-      BuiltinDetector::ShootingStar2Lines(ShootingStar2LinesDetector::with_defaults()),
-      BuiltinDetector::DownsideGapThreeMethods(DownsideGapThreeMethodsDetector::with_defaults()),
-      BuiltinDetector::UpsideGapThreeMethods(UpsideGapThreeMethodsDetector::with_defaults()),
-      BuiltinDetector::DownsideTasukiGap(DownsideTasukiGapDetector::with_defaults()),
-      BuiltinDetector::UpsideTasukiGap(UpsideTasukiGapDetector::with_defaults()),
-    ]);
+  /// Add all builtin patterns with default configurations
+  pub fn with_all_defaults(self) -> Self {
     self
+      .with_single_bar_defaults()
+      .with_two_bar_defaults()
+      .with_three_bar_defaults()
+      .with_multi_bar_defaults()
+      .with_extended_defaults()
   }
 
   /// Add only extended patterns with defaults
   pub fn with_extended_defaults(mut self) -> Self {
-    self.builtin.extend([
-      BuiltinDetector::PriceLines(PriceLinesDetector::with_defaults()),
-      BuiltinDetector::FallingWindow(FallingWindowDetector::with_defaults()),
-      BuiltinDetector::RisingWindow(RisingWindowDetector::with_defaults()),
-      BuiltinDetector::GappingDownDoji(GappingDownDojiDetector::with_defaults()),
-      BuiltinDetector::GappingUpDoji(GappingUpDojiDetector::with_defaults()),
-      BuiltinDetector::AboveTheStomach(AboveTheStomachDetector::with_defaults()),
-      BuiltinDetector::BelowTheStomach(BelowTheStomachDetector::with_defaults()),
-      BuiltinDetector::CollapsingDojiStar(CollapsingDojiStarDetector::with_defaults()),
-      BuiltinDetector::Deliberation(DeliberationDetector::with_defaults()),
-      BuiltinDetector::LastEngulfingBottom(LastEngulfingBottomDetector::with_defaults()),
-      BuiltinDetector::LastEngulfingTop(LastEngulfingTopDetector::with_defaults()),
-      BuiltinDetector::TwoBlackGapping(TwoBlackGappingDetector::with_defaults()),
-      BuiltinDetector::MeetingLinesBearish(MeetingLinesBearishDetector::with_defaults()),
-      BuiltinDetector::MeetingLinesBullish(MeetingLinesBullishDetector::with_defaults()),
-      BuiltinDetector::NorthernDoji(NorthernDojiDetector::with_defaults()),
-      BuiltinDetector::SouthernDoji(SouthernDojiDetector::with_defaults()),
-      BuiltinDetector::BlackMarubozu(BlackMarubozuDetector::with_defaults()),
-      BuiltinDetector::WhiteMarubozu(WhiteMarubozuDetector::with_defaults()),
-      BuiltinDetector::OpeningBlackMarubozu(OpeningBlackMarubozuDetector::with_defaults()),
-      BuiltinDetector::OpeningWhiteMarubozu(OpeningWhiteMarubozuDetector::with_defaults()),
-      BuiltinDetector::BlackCandle(BlackCandleDetector::with_defaults()),
-      BuiltinDetector::WhiteCandle(WhiteCandleDetector::with_defaults()),
-      BuiltinDetector::ShortBlack(ShortBlackDetector::with_defaults()),
-      BuiltinDetector::ShortWhite(ShortWhiteDetector::with_defaults()),
-      BuiltinDetector::LongBlackDay(LongBlackDayDetector::with_defaults()),
-      BuiltinDetector::LongWhiteDay(LongWhiteDayDetector::with_defaults()),
-      BuiltinDetector::BlackSpinningTop(BlackSpinningTopDetector::with_defaults()),
-      BuiltinDetector::WhiteSpinningTop(WhiteSpinningTopDetector::with_defaults()),
-      BuiltinDetector::ShootingStar2Lines(ShootingStar2LinesDetector::with_defaults()),
-      BuiltinDetector::DownsideGapThreeMethods(DownsideGapThreeMethodsDetector::with_defaults()),
-      BuiltinDetector::UpsideGapThreeMethods(UpsideGapThreeMethodsDetector::with_defaults()),
-      BuiltinDetector::DownsideTasukiGap(DownsideTasukiGapDetector::with_defaults()),
-      BuiltinDetector::UpsideTasukiGap(UpsideTasukiGapDetector::with_defaults()),
+    self.builtin.extend(builtin_defaults![
+      PriceLines,
+      FallingWindow,
+      RisingWindow,
+      GappingDownDoji,
+      GappingUpDoji,
+      AboveTheStomach,
+      BelowTheStomach,
+      CollapsingDojiStar,
+      Deliberation,
+      LastEngulfingBottom,
+      LastEngulfingTop,
+      TwoBlackGapping,
+      MeetingLinesBearish,
+      MeetingLinesBullish,
+      NorthernDoji,
+      SouthernDoji,
+      BlackMarubozu,
+      WhiteMarubozu,
+      OpeningBlackMarubozu,
+      OpeningWhiteMarubozu,
+      BlackCandle,
+      WhiteCandle,
+      ShortBlack,
+      ShortWhite,
+      LongBlackDay,
+      LongWhiteDay,
+      BlackSpinningTop,
+      WhiteSpinningTop,
+      ShootingStar2Lines,
+      DownsideGapThreeMethods,
+      UpsideGapThreeMethods,
+      DownsideTasukiGap,
+      UpsideTasukiGap,
     ]);
     self
   }
 
   /// Add only single-bar patterns with defaults (17)
   pub fn with_single_bar_defaults(mut self) -> Self {
-    self.builtin.extend([
-      BuiltinDetector::Doji(DojiDetector::with_defaults()),
-      BuiltinDetector::DragonflyDoji(DragonflyDojiDetector::with_defaults()),
-      BuiltinDetector::GravestoneDoji(GravestoneDojiDetector::with_defaults()),
-      BuiltinDetector::LongLeggedDoji(LongLeggedDojiDetector::with_defaults()),
-      BuiltinDetector::RickshawMan(RickshawManDetector::with_defaults()),
-      BuiltinDetector::Hammer(HammerDetector::with_defaults()),
-      BuiltinDetector::HangingMan(HangingManDetector::with_defaults()),
-      BuiltinDetector::InvertedHammer(InvertedHammerDetector::with_defaults()),
-      BuiltinDetector::ShootingStar(ShootingStarDetector::with_defaults()),
-      BuiltinDetector::Takuri(TakuriDetector::with_defaults()),
-      BuiltinDetector::Marubozu(MarubozuDetector::with_defaults()),
-      BuiltinDetector::ClosingMarubozu(ClosingMarubozuDetector::with_defaults()),
-      BuiltinDetector::LongLine(LongLineDetector::with_defaults()),
-      BuiltinDetector::ShortLine(ShortLineDetector::with_defaults()),
-      BuiltinDetector::SpinningTop(SpinningTopDetector::with_defaults()),
-      BuiltinDetector::HighWave(HighWaveDetector::with_defaults()),
-      BuiltinDetector::BeltHold(BeltHoldDetector::with_defaults()),
+    self.builtin.extend(builtin_defaults![
+      Doji,
+      DragonflyDoji,
+      GravestoneDoji,
+      LongLeggedDoji,
+      RickshawMan,
+      Hammer,
+      HangingMan,
+      InvertedHammer,
+      ShootingStar,
+      Takuri,
+      Marubozu,
+      ClosingMarubozu,
+      LongLine,
+      ShortLine,
+      SpinningTop,
+      HighWave,
+      BeltHold,
     ]);
     self
   }
 
-  /// Add two-bar patterns with defaults (17)
+  /// Add two-bar patterns with defaults (18)
   pub fn with_two_bar_defaults(mut self) -> Self {
-    self.builtin.extend([
-      BuiltinDetector::Engulfing(EngulfingDetector::with_defaults()),
-      BuiltinDetector::Harami(HaramiDetector::with_defaults()),
-      BuiltinDetector::HaramiCross(HaramiCrossDetector::with_defaults()),
-      BuiltinDetector::Piercing(PiercingDetector::with_defaults()),
-      BuiltinDetector::DarkCloudCover(DarkCloudCoverDetector::with_defaults()),
-      BuiltinDetector::DojiStar(DojiStarDetector::with_defaults()),
-      BuiltinDetector::Counterattack(CounterattackDetector::with_defaults()),
-      BuiltinDetector::InNeck(InNeckDetector::with_defaults()),
-      BuiltinDetector::OnNeck(OnNeckDetector::with_defaults()),
-      BuiltinDetector::Thrusting(ThrustingDetector::with_defaults()),
-      BuiltinDetector::Kicking(KickingDetector::with_defaults()),
-      BuiltinDetector::KickingByLength(KickingByLengthDetector::with_defaults()),
-      BuiltinDetector::MatchingLow(MatchingLowDetector::with_defaults()),
-      BuiltinDetector::HomingPigeon(HomingPigeonDetector::with_defaults()),
-      BuiltinDetector::SeparatingLines(SeparatingLinesDetector::with_defaults()),
-      BuiltinDetector::GapSideSideWhite(GapSideSideWhiteDetector::with_defaults()),
-      BuiltinDetector::TweezerTop(TweezerTopDetector::with_defaults()),
-      BuiltinDetector::TweezerBottom(TweezerBottomDetector::with_defaults()),
+    self.builtin.extend(builtin_defaults![
+      Engulfing,
+      Harami,
+      HaramiCross,
+      Piercing,
+      DarkCloudCover,
+      DojiStar,
+      Counterattack,
+      InNeck,
+      OnNeck,
+      Thrusting,
+      Kicking,
+      KickingByLength,
+      MatchingLow,
+      HomingPigeon,
+      SeparatingLines,
+      GapSideSideWhite,
+      TweezerTop,
+      TweezerBottom,
     ]);
     self
   }
 
-  /// Add three-bar patterns with defaults (22)
+  /// Add three-bar patterns with defaults (20)
   pub fn with_three_bar_defaults(mut self) -> Self {
-    self.builtin.extend([
-      BuiltinDetector::ThreeWhiteSoldiers(ThreeWhiteSoldiersDetector::with_defaults()),
-      BuiltinDetector::ThreeBlackCrows(ThreeBlackCrowsDetector::with_defaults()),
-      BuiltinDetector::ThreeInside(ThreeInsideDetector::with_defaults()),
-      BuiltinDetector::ThreeOutside(ThreeOutsideDetector::with_defaults()),
-      BuiltinDetector::ThreeLineStrike(ThreeLineStrikeDetector::with_defaults()),
-      BuiltinDetector::ThreeStarsInSouth(ThreeStarsInSouthDetector::with_defaults()),
-      BuiltinDetector::MorningStar(MorningStarDetector::with_defaults()),
-      BuiltinDetector::EveningStar(EveningStarDetector::with_defaults()),
-      BuiltinDetector::MorningDojiStar(MorningDojiStarDetector::with_defaults()),
-      BuiltinDetector::EveningDojiStar(EveningDojiStarDetector::with_defaults()),
-      BuiltinDetector::AbandonedBaby(AbandonedBabyDetector::with_defaults()),
-      BuiltinDetector::TwoCrows(TwoCrowsDetector::with_defaults()),
-      BuiltinDetector::UpsideGapTwoCrows(UpsideGapTwoCrowsDetector::with_defaults()),
-      BuiltinDetector::IdenticalThreeCrows(IdenticalThreeCrowsDetector::with_defaults()),
-      BuiltinDetector::AdvanceBlock(AdvanceBlockDetector::with_defaults()),
-      BuiltinDetector::StalledPattern(StalledPatternDetector::with_defaults()),
-      BuiltinDetector::StickSandwich(StickSandwichDetector::with_defaults()),
-      BuiltinDetector::TasukiGap(TasukiGapDetector::with_defaults()),
-      BuiltinDetector::Tristar(TristarDetector::with_defaults()),
-      BuiltinDetector::Unique3River(Unique3RiverDetector::with_defaults()),
+    self.builtin.extend(builtin_defaults![
+      ThreeWhiteSoldiers,
+      ThreeBlackCrows,
+      ThreeInside,
+      ThreeOutside,
+      ThreeLineStrike,
+      ThreeStarsInSouth,
+      MorningStar,
+      EveningStar,
+      MorningDojiStar,
+      EveningDojiStar,
+      AbandonedBaby,
+      TwoCrows,
+      UpsideGapTwoCrows,
+      IdenticalThreeCrows,
+      AdvanceBlock,
+      StalledPattern,
+      StickSandwich,
+      TasukiGap,
+      Tristar,
+      Unique3River,
     ]);
     self
   }
 
   /// Add multi-bar patterns with defaults (8)
   pub fn with_multi_bar_defaults(mut self) -> Self {
-    self.builtin.extend([
-      BuiltinDetector::Breakaway(BreakawayDetector::with_defaults()),
-      BuiltinDetector::ConcealingBabySwallow(ConcealingBabySwallowDetector::with_defaults()),
-      BuiltinDetector::Hikkake(HikkakeDetector::with_defaults()),
-      BuiltinDetector::HikkakeMod(HikkakeModDetector::with_defaults()),
-      BuiltinDetector::LadderBottom(LadderBottomDetector::with_defaults()),
-      BuiltinDetector::MatHold(MatHoldDetector::with_defaults()),
-      BuiltinDetector::RiseFallThreeMethods(RiseFallThreeMethodsDetector::with_defaults()),
-      BuiltinDetector::XSideGapThreeMethods(XSideGapThreeMethodsDetector::with_defaults()),
+    self.builtin.extend(builtin_defaults![
+      Breakaway,
+      ConcealingBabySwallow,
+      Hikkake,
+      HikkakeMod,
+      LadderBottom,
+      MatHold,
+      RiseFallThreeMethods,
+      XSideGapThreeMethods,
     ]);
     self
   }

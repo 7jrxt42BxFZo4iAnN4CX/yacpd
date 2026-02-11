@@ -9,13 +9,33 @@
 
 use std::collections::HashMap;
 
-use crate::{
-  params::{get_ratio, ParamMeta, ParamType, ParameterizedDetector},
-  Direction, MarketContext, OHLCVExt, PatternDetector, PatternId, PatternMatch, Ratio, Result,
-  OHLCV,
-};
-
 use super::helpers::{self, is_body_long_f, is_body_short_f, is_doji_f, is_shadow_very_short, is_shadow_very_short_f};
+use crate::{params::{get_ratio, ParamMeta, ParamType, ParameterizedDetector}, Direction, MarketContext, OHLCVExt, PatternDetector, PatternId, PatternMatch, Ratio, Result, OHLCV};
+
+impl_with_defaults!(
+  ThreeWhiteSoldiersDetector,
+  ThreeBlackCrowsDetector,
+  ThreeInsideDetector,
+  ThreeOutsideDetector,
+  ThreeLineStrikeDetector,
+  ThreeStarsInSouthDetector,
+  MorningStarDetector,
+  EveningStarDetector,
+  MorningDojiStarDetector,
+  EveningDojiStarDetector,
+  AbandonedBabyDetector,
+  TwoCrowsDetector,
+  UpsideGapTwoCrowsDetector,
+  IdenticalThreeCrowsDetector,
+  AdvanceBlockDetector,
+  StalledPatternDetector,
+  StickSandwichDetector,
+  TasukiGapDetector,
+  TristarDetector,
+  Unique3RiverDetector,
+  TweezerTopDetector,
+  TweezerBottomDetector,
+);
 
 // ============================================================
 // THREE WHITE SOLDIERS / THREE BLACK CROWS
@@ -25,25 +45,19 @@ use super::helpers::{self, is_body_long_f, is_body_short_f, is_doji_f, is_shadow
 #[derive(Debug, Clone)]
 pub struct ThreeWhiteSoldiersDetector {
   pub shadow_veryshort_factor: f64,
-  pub near_factor: f64,
-  pub far_factor: f64,
-  pub body_short_factor: f64,
+  pub near_factor:             f64,
+  pub far_factor:              f64,
+  pub body_short_factor:       f64,
 }
 
 impl Default for ThreeWhiteSoldiersDetector {
   fn default() -> Self {
     Self {
       shadow_veryshort_factor: helpers::SHADOW_VERYSHORT_FACTOR,
-      near_factor: helpers::NEAR_FACTOR,
-      far_factor: helpers::FAR_FACTOR,
-      body_short_factor: helpers::BODY_SHORT_FACTOR,
+      near_factor:             helpers::NEAR_FACTOR,
+      far_factor:              helpers::FAR_FACTOR,
+      body_short_factor:       helpers::BODY_SHORT_FACTOR,
     }
-  }
-}
-
-impl ThreeWhiteSoldiersDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -89,7 +103,8 @@ impl PatternDetector for ThreeWhiteSoldiersDetector {
     let third_upper = third.high() - third.close();
 
     let svs_first = helpers::trailing_avg_range(bars, index - 2, 10) * self.shadow_veryshort_factor;
-    let svs_second = helpers::trailing_avg_range(bars, index - 1, 10) * self.shadow_veryshort_factor;
+    let svs_second =
+      helpers::trailing_avg_range(bars, index - 1, 10) * self.shadow_veryshort_factor;
     let svs_third = helpers::trailing_avg_range(bars, index, 10) * self.shadow_veryshort_factor;
 
     if first_upper >= svs_first || second_upper >= svs_second || third_upper >= svs_third {
@@ -144,15 +159,7 @@ pub struct ThreeBlackCrowsDetector {
 
 impl Default for ThreeBlackCrowsDetector {
   fn default() -> Self {
-    Self {
-      shadow_veryshort_factor: helpers::SHADOW_VERYSHORT_FACTOR,
-    }
-  }
-}
-
-impl ThreeBlackCrowsDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
+    Self { shadow_veryshort_factor: helpers::SHADOW_VERYSHORT_FACTOR }
   }
 }
 
@@ -216,7 +223,8 @@ impl PatternDetector for ThreeBlackCrowsDetector {
     let third_lower = third.lower_shadow();
 
     let svs_first = helpers::trailing_avg_range(bars, index - 2, 10) * self.shadow_veryshort_factor;
-    let svs_second = helpers::trailing_avg_range(bars, index - 1, 10) * self.shadow_veryshort_factor;
+    let svs_second =
+      helpers::trailing_avg_range(bars, index - 1, 10) * self.shadow_veryshort_factor;
     let svs_third = helpers::trailing_avg_range(bars, index, 10) * self.shadow_veryshort_factor;
 
     if first_lower >= svs_first || second_lower >= svs_second || third_lower >= svs_third {
@@ -240,22 +248,16 @@ impl PatternDetector for ThreeBlackCrowsDetector {
 /// CDL3INSIDE - Three Inside Up/Down (TA-Lib compatible)
 #[derive(Debug, Clone)]
 pub struct ThreeInsideDetector {
-  pub body_long_factor: f64,
+  pub body_long_factor:  f64,
   pub body_short_factor: f64,
 }
 
 impl Default for ThreeInsideDetector {
   fn default() -> Self {
     Self {
-      body_long_factor: helpers::BODY_LONG_FACTOR,
+      body_long_factor:  helpers::BODY_LONG_FACTOR,
       body_short_factor: helpers::BODY_SHORT_FACTOR,
     }
-  }
-}
-
-impl ThreeInsideDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -272,7 +274,7 @@ impl PatternDetector for ThreeInsideDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 2 {
       return None;
@@ -344,12 +346,6 @@ pub struct ThreeOutsideDetector;
 impl Default for ThreeOutsideDetector {
   fn default() -> Self {
     Self
-  }
-}
-
-impl ThreeOutsideDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -426,15 +422,7 @@ pub struct ThreeLineStrikeDetector {
 
 impl Default for ThreeLineStrikeDetector {
   fn default() -> Self {
-    Self {
-      near_factor: helpers::NEAR_FACTOR,
-    }
-  }
-}
-
-impl ThreeLineStrikeDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
+    Self { near_factor: helpers::NEAR_FACTOR }
   }
 }
 
@@ -451,7 +439,7 @@ impl PatternDetector for ThreeLineStrikeDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 3 {
       return None;
@@ -468,8 +456,12 @@ impl PatternDetector for ThreeLineStrikeDetector {
     let color_fourth = if fourth.close() >= fourth.open() { 1_i32 } else { -1 };
 
     // TA-Lib: first three same color, fourth opposite
-    if color_first != color_second || color_second != color_third { return None; }
-    if color_third == color_fourth { return None; }
+    if color_first != color_second || color_second != color_third {
+      return None;
+    }
+    if color_third == color_fourth {
+      return None;
+    }
 
     // TA-Lib: Near threshold per-candle for open checks
     let near_threshold_first = helpers::trailing_avg_range(bars, index - 3, 5) * self.near_factor;
@@ -490,8 +482,10 @@ impl PatternDetector for ThreeLineStrikeDetector {
 
     if color_first == 1 {
       // Bullish: three ascending closes, 4th opens above 3rd close, closes below 1st open
-      if second.close() > first.close() && third.close() > second.close()
-        && fourth.open() > third.close() && fourth.close() < first.open()
+      if second.close() > first.close()
+        && third.close() > second.close()
+        && fourth.open() > third.close()
+        && fourth.close() < first.open()
       {
         return Some(PatternMatch {
           pattern_id:  PatternDetector::id(self),
@@ -503,8 +497,10 @@ impl PatternDetector for ThreeLineStrikeDetector {
       }
     } else {
       // Bearish: three descending closes, 4th opens below 3rd close, closes above 1st open
-      if second.close() < first.close() && third.close() < second.close()
-        && fourth.open() < third.close() && fourth.close() > first.open()
+      if second.close() < first.close()
+        && third.close() < second.close()
+        && fourth.open() < third.close()
+        && fourth.close() > first.open()
       {
         return Some(PatternMatch {
           pattern_id:  PatternDetector::id(self),
@@ -527,24 +523,18 @@ impl PatternDetector for ThreeLineStrikeDetector {
 /// CDL3STARSINSOUTH - Three Stars In The South
 #[derive(Debug, Clone)]
 pub struct ThreeStarsInSouthDetector {
-  pub body_long_factor: f64,
-  pub body_short_factor: f64,
+  pub body_long_factor:        f64,
+  pub body_short_factor:       f64,
   pub shadow_veryshort_factor: f64,
 }
 
 impl Default for ThreeStarsInSouthDetector {
   fn default() -> Self {
     Self {
-      body_long_factor: helpers::BODY_LONG_FACTOR,
-      body_short_factor: helpers::BODY_SHORT_FACTOR,
+      body_long_factor:        helpers::BODY_LONG_FACTOR,
+      body_short_factor:       helpers::BODY_SHORT_FACTOR,
       shadow_veryshort_factor: helpers::SHADOW_VERYSHORT_FACTOR,
     }
-  }
-}
-
-impl ThreeStarsInSouthDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -561,7 +551,7 @@ impl PatternDetector for ThreeStarsInSouthDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 2 {
       return None;
@@ -629,10 +619,20 @@ impl PatternDetector for ThreeStarsInSouthDetector {
 
     // TA-Lib: Third has both shadows ShadowVeryShort (per-candle at i)
     let avg_range_third = helpers::trailing_avg_range(bars, index, 10);
-    if !is_shadow_very_short_f(third.lower_shadow(), avg_range_third, third_range, self.shadow_veryshort_factor) {
+    if !is_shadow_very_short_f(
+      third.lower_shadow(),
+      avg_range_third,
+      third_range,
+      self.shadow_veryshort_factor,
+    ) {
       return None;
     }
-    if !is_shadow_very_short_f(third.upper_shadow(), avg_range_third, third_range, self.shadow_veryshort_factor) {
+    if !is_shadow_very_short_f(
+      third.upper_shadow(),
+      avg_range_third,
+      third_range,
+      self.shadow_veryshort_factor,
+    ) {
       return None;
     }
 
@@ -661,24 +661,18 @@ impl PatternDetector for ThreeStarsInSouthDetector {
 /// CDLMORNINGSTAR - Morning Star (TA-Lib compatible)
 #[derive(Debug, Clone)]
 pub struct MorningStarDetector {
-  pub body_long_factor: f64,
+  pub body_long_factor:  f64,
   pub body_short_factor: f64,
-  pub penetration: f64,
+  pub penetration:       f64,
 }
 
 impl Default for MorningStarDetector {
   fn default() -> Self {
     Self {
-      body_long_factor: helpers::BODY_LONG_FACTOR,
+      body_long_factor:  helpers::BODY_LONG_FACTOR,
       body_short_factor: helpers::BODY_SHORT_FACTOR,
-      penetration: 0.3,
+      penetration:       0.3,
     }
-  }
-}
-
-impl MorningStarDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -761,24 +755,18 @@ impl PatternDetector for MorningStarDetector {
 /// CDLEVENINGSTAR - Evening Star (TA-Lib compatible)
 #[derive(Debug, Clone)]
 pub struct EveningStarDetector {
-  pub body_long_factor: f64,
+  pub body_long_factor:  f64,
   pub body_short_factor: f64,
-  pub penetration: f64,
+  pub penetration:       f64,
 }
 
 impl Default for EveningStarDetector {
   fn default() -> Self {
     Self {
-      body_long_factor: helpers::BODY_LONG_FACTOR,
+      body_long_factor:  helpers::BODY_LONG_FACTOR,
       body_short_factor: helpers::BODY_SHORT_FACTOR,
-      penetration: 0.3,
+      penetration:       0.3,
     }
-  }
-}
-
-impl EveningStarDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -862,23 +850,17 @@ impl PatternDetector for EveningStarDetector {
 #[derive(Debug, Clone)]
 pub struct MorningDojiStarDetector {
   pub body_long_factor: f64,
-  pub doji_factor: f64,
-  pub penetration: f64,
+  pub doji_factor:      f64,
+  pub penetration:      f64,
 }
 
 impl Default for MorningDojiStarDetector {
   fn default() -> Self {
     Self {
       body_long_factor: helpers::BODY_LONG_FACTOR,
-      doji_factor: helpers::DOJI_FACTOR,
-      penetration: 0.3,
+      doji_factor:      helpers::DOJI_FACTOR,
+      penetration:      0.3,
     }
-  }
-}
-
-impl MorningDojiStarDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -961,23 +943,17 @@ impl PatternDetector for MorningDojiStarDetector {
 #[derive(Debug, Clone)]
 pub struct EveningDojiStarDetector {
   pub body_long_factor: f64,
-  pub doji_factor: f64,
-  pub penetration: f64,
+  pub doji_factor:      f64,
+  pub penetration:      f64,
 }
 
 impl Default for EveningDojiStarDetector {
   fn default() -> Self {
     Self {
       body_long_factor: helpers::BODY_LONG_FACTOR,
-      doji_factor: helpers::DOJI_FACTOR,
-      penetration: 0.3,
+      doji_factor:      helpers::DOJI_FACTOR,
+      penetration:      0.3,
     }
-  }
-}
-
-impl EveningDojiStarDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -1064,23 +1040,17 @@ impl PatternDetector for EveningDojiStarDetector {
 #[derive(Debug, Clone)]
 pub struct AbandonedBabyDetector {
   pub body_long_factor: f64,
-  pub doji_factor: f64,
-  pub penetration: f64,
+  pub doji_factor:      f64,
+  pub penetration:      f64,
 }
 
 impl Default for AbandonedBabyDetector {
   fn default() -> Self {
     Self {
       body_long_factor: helpers::BODY_LONG_FACTOR,
-      doji_factor: helpers::DOJI_FACTOR,
-      penetration: 0.3,
+      doji_factor:      helpers::DOJI_FACTOR,
+      penetration:      0.3,
     }
-  }
-}
-
-impl AbandonedBabyDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -1193,15 +1163,7 @@ pub struct TwoCrowsDetector {
 
 impl Default for TwoCrowsDetector {
   fn default() -> Self {
-    Self {
-      body_long_factor: helpers::BODY_LONG_FACTOR,
-    }
-  }
-}
-
-impl TwoCrowsDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
+    Self { body_long_factor: helpers::BODY_LONG_FACTOR }
   }
 }
 
@@ -1286,15 +1248,7 @@ pub struct UpsideGapTwoCrowsDetector {
 
 impl Default for UpsideGapTwoCrowsDetector {
   fn default() -> Self {
-    Self {
-      body_long_factor: helpers::BODY_LONG_FACTOR,
-    }
-  }
-}
-
-impl UpsideGapTwoCrowsDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
+    Self { body_long_factor: helpers::BODY_LONG_FACTOR }
   }
 }
 
@@ -1311,7 +1265,7 @@ impl PatternDetector for UpsideGapTwoCrowsDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 2 {
       return None;
@@ -1378,12 +1332,6 @@ impl Default for IdenticalThreeCrowsDetector {
   }
 }
 
-impl IdenticalThreeCrowsDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for IdenticalThreeCrowsDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_IDENTICAL3CROWS")
@@ -1397,7 +1345,7 @@ impl PatternDetector for IdenticalThreeCrowsDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 2 {
       return None;
@@ -1458,23 +1406,17 @@ impl PatternDetector for IdenticalThreeCrowsDetector {
 #[derive(Debug, Clone)]
 pub struct AdvanceBlockDetector {
   pub body_long_factor: f64,
-  pub near_factor: f64,
-  pub far_factor: f64,
+  pub near_factor:      f64,
+  pub far_factor:       f64,
 }
 
 impl Default for AdvanceBlockDetector {
   fn default() -> Self {
     Self {
       body_long_factor: helpers::BODY_LONG_FACTOR,
-      near_factor: helpers::NEAR_FACTOR,
-      far_factor: helpers::FAR_FACTOR,
+      near_factor:      helpers::NEAR_FACTOR,
+      far_factor:       helpers::FAR_FACTOR,
     }
-  }
-}
-
-impl AdvanceBlockDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -1551,8 +1493,8 @@ impl PatternDetector for AdvanceBlockDetector {
     let near_at_second = helpers::trailing_avg_range(bars, index - 1, 5) * self.near_factor;
 
     // Pattern A: 2nd body far smaller than 1st AND 3rd not longer than 2nd
-    let pattern_a = second_body < first_body - far_first
-      && third_body < second_body + near_at_second;
+    let pattern_a =
+      second_body < first_body - far_first && third_body < second_body + near_at_second;
 
     // Pattern B: 3rd body far smaller than 2nd
     let pattern_b = third_body < second_body - far_second;
@@ -1587,26 +1529,20 @@ impl PatternDetector for AdvanceBlockDetector {
 /// CDLSTALLEDPATTERN - Stalled Pattern (Deliberation)
 #[derive(Debug, Clone)]
 pub struct StalledPatternDetector {
-  pub body_long_factor: f64,
-  pub body_short_factor: f64,
+  pub body_long_factor:        f64,
+  pub body_short_factor:       f64,
   pub shadow_veryshort_factor: f64,
-  pub near_factor: f64,
+  pub near_factor:             f64,
 }
 
 impl Default for StalledPatternDetector {
   fn default() -> Self {
     Self {
-      body_long_factor: helpers::BODY_LONG_FACTOR,
-      body_short_factor: helpers::BODY_SHORT_FACTOR,
+      body_long_factor:        helpers::BODY_LONG_FACTOR,
+      body_short_factor:       helpers::BODY_SHORT_FACTOR,
       shadow_veryshort_factor: helpers::SHADOW_VERYSHORT_FACTOR,
-      near_factor: helpers::NEAR_FACTOR,
+      near_factor:             helpers::NEAR_FACTOR,
     }
-  }
-}
-
-impl StalledPatternDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -1659,7 +1595,12 @@ impl PatternDetector for StalledPatternDetector {
     // TA-Lib: Second candle has very short upper shadow (ShadowVeryShort) — per-candle trailing avg
     let second_upper = second.high() - second.close();
     let avg_range_second = helpers::trailing_avg_range(bars, index - 1, 10);
-    if !is_shadow_very_short_f(second_upper, avg_range_second, second_range, self.shadow_veryshort_factor) {
+    if !is_shadow_very_short_f(
+      second_upper,
+      avg_range_second,
+      second_range,
+      self.shadow_veryshort_factor,
+    ) {
       return None;
     }
 
@@ -1713,12 +1654,6 @@ impl Default for StickSandwichDetector {
   }
 }
 
-impl StickSandwichDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for StickSandwichDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_STICKSANDWICH")
@@ -1732,7 +1667,7 @@ impl PatternDetector for StickSandwichDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 2 {
       return None;
@@ -1743,9 +1678,15 @@ impl PatternDetector for StickSandwichDetector {
 
     // TA-Lib StickSandwich (TA_CANDLECOLOR convention):
     // 1. first black (close < open), second white (close >= open), third black (close < open)
-    if first.close() >= first.open() { return None; }
-    if second.close() < second.open() { return None; }
-    if third.close() >= third.open() { return None; }
+    if first.close() >= first.open() {
+      return None;
+    }
+    if second.close() < second.open() {
+      return None;
+    }
+    if third.close() >= third.open() {
+      return None;
+    }
 
     // 2. second bar's LOW must be above first bar's close (gap up)
     // TA-Lib: low[i-1] > close[i-2] (strict >)
@@ -1782,15 +1723,7 @@ pub struct TasukiGapDetector {
 
 impl Default for TasukiGapDetector {
   fn default() -> Self {
-    Self {
-      near_factor: helpers::NEAR_FACTOR,
-    }
-  }
-}
-
-impl TasukiGapDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
+    Self { near_factor: helpers::NEAR_FACTOR }
   }
 }
 
@@ -1807,7 +1740,7 @@ impl PatternDetector for TasukiGapDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 2 {
       return None;
@@ -1915,15 +1848,7 @@ pub struct TristarDetector {
 
 impl Default for TristarDetector {
   fn default() -> Self {
-    Self {
-      doji_factor: helpers::DOJI_FACTOR,
-    }
-  }
-}
-
-impl TristarDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
+    Self { doji_factor: helpers::DOJI_FACTOR }
   }
 }
 
@@ -1940,7 +1865,7 @@ impl PatternDetector for TristarDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 2 {
       return None;
@@ -2009,22 +1934,16 @@ impl PatternDetector for TristarDetector {
 /// CDLUNIQUE3RIVER - Unique 3 River
 #[derive(Debug, Clone)]
 pub struct Unique3RiverDetector {
-  pub body_long_factor: f64,
+  pub body_long_factor:  f64,
   pub body_short_factor: f64,
 }
 
 impl Default for Unique3RiverDetector {
   fn default() -> Self {
     Self {
-      body_long_factor: helpers::BODY_LONG_FACTOR,
+      body_long_factor:  helpers::BODY_LONG_FACTOR,
       body_short_factor: helpers::BODY_SHORT_FACTOR,
     }
-  }
-}
-
-impl Unique3RiverDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -2115,12 +2034,6 @@ impl Default for TweezerTopDetector {
   }
 }
 
-impl TweezerTopDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for TweezerTopDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_TWEEZERTOP")
@@ -2178,12 +2091,6 @@ impl Default for TweezerBottomDetector {
   }
 }
 
-impl TweezerBottomDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for TweezerBottomDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_TWEEZERBOTTOM")
@@ -2234,15 +2141,43 @@ impl PatternDetector for TweezerBottomDetector {
 // ============================================================
 
 static THREE_WHITE_SOLDIERS_PARAMS: &[ParamMeta] = &[
-  ParamMeta { name: "shadow_veryshort_factor", param_type: ParamType::Ratio, default: 0.1, range: (0.05, 0.2, 0.05), description: "Shadow very short threshold factor" },
-  ParamMeta { name: "near_factor", param_type: ParamType::Ratio, default: 0.2, range: (0.1, 0.4, 0.1), description: "Near threshold factor" },
-  ParamMeta { name: "far_factor", param_type: ParamType::Ratio, default: 0.6, range: (0.3, 0.9, 0.1), description: "Far threshold factor" },
-  ParamMeta { name: "body_short_factor", param_type: ParamType::Ratio, default: 1.0, range: (0.5, 1.5, 0.1), description: "Body short threshold factor" },
+  ParamMeta {
+    name:        "shadow_veryshort_factor",
+    param_type:  ParamType::Ratio,
+    default:     0.1,
+    range:       (0.05, 0.2, 0.05),
+    description: "Shadow very short threshold factor",
+  },
+  ParamMeta {
+    name:        "near_factor",
+    param_type:  ParamType::Ratio,
+    default:     0.2,
+    range:       (0.1, 0.4, 0.1),
+    description: "Near threshold factor",
+  },
+  ParamMeta {
+    name:        "far_factor",
+    param_type:  ParamType::Ratio,
+    default:     0.6,
+    range:       (0.3, 0.9, 0.1),
+    description: "Far threshold factor",
+  },
+  ParamMeta {
+    name:        "body_short_factor",
+    param_type:  ParamType::Ratio,
+    default:     1.0,
+    range:       (0.5, 1.5, 0.1),
+    description: "Body short threshold factor",
+  },
 ];
 
-static THREE_BLACK_CROWS_PARAMS: &[ParamMeta] = &[
-  ParamMeta { name: "shadow_veryshort_factor", param_type: ParamType::Ratio, default: 0.1, range: (0.05, 0.2, 0.05), description: "Shadow very short threshold factor" },
-];
+static THREE_BLACK_CROWS_PARAMS: &[ParamMeta] = &[ParamMeta {
+  name:        "shadow_veryshort_factor",
+  param_type:  ParamType::Ratio,
+  default:     0.1,
+  range:       (0.05, 0.2, 0.05),
+  description: "Shadow very short threshold factor",
+}];
 
 static IDENTICAL_THREE_CROWS_PARAMS: &[ParamMeta] = &[ParamMeta {
   name:        "tolerance",
@@ -2283,10 +2218,16 @@ impl ParameterizedDetector for ThreeWhiteSoldiersDetector {
 
   fn with_params(params: &HashMap<&str, f64>) -> Result<Self> {
     Ok(Self {
-      shadow_veryshort_factor: params.get("shadow_veryshort_factor").copied().unwrap_or(helpers::SHADOW_VERYSHORT_FACTOR),
-      near_factor: params.get("near_factor").copied().unwrap_or(helpers::NEAR_FACTOR),
-      far_factor: params.get("far_factor").copied().unwrap_or(helpers::FAR_FACTOR),
-      body_short_factor: params.get("body_short_factor").copied().unwrap_or(helpers::BODY_SHORT_FACTOR),
+      shadow_veryshort_factor: params
+        .get("shadow_veryshort_factor")
+        .copied()
+        .unwrap_or(helpers::SHADOW_VERYSHORT_FACTOR),
+      near_factor:             params.get("near_factor").copied().unwrap_or(helpers::NEAR_FACTOR),
+      far_factor:              params.get("far_factor").copied().unwrap_or(helpers::FAR_FACTOR),
+      body_short_factor:       params
+        .get("body_short_factor")
+        .copied()
+        .unwrap_or(helpers::BODY_SHORT_FACTOR),
     })
   }
 
@@ -2302,7 +2243,10 @@ impl ParameterizedDetector for ThreeBlackCrowsDetector {
 
   fn with_params(params: &HashMap<&str, f64>) -> Result<Self> {
     Ok(Self {
-      shadow_veryshort_factor: params.get("shadow_veryshort_factor").copied().unwrap_or(helpers::SHADOW_VERYSHORT_FACTOR),
+      shadow_veryshort_factor: params
+        .get("shadow_veryshort_factor")
+        .copied()
+        .unwrap_or(helpers::SHADOW_VERYSHORT_FACTOR),
     })
   }
 

@@ -7,13 +7,19 @@
 
 use std::collections::HashMap;
 
-use crate::{
-  params::{get_ratio, ParamMeta, ParamType, ParameterizedDetector},
-  Direction, MarketContext, OHLCVExt, PatternDetector, PatternId, PatternMatch, Ratio, Result,
-  OHLCV,
-};
-
 use super::helpers::{is_body_long_f, is_body_short_f};
+use crate::{params::{get_ratio, ParamMeta, ParamType, ParameterizedDetector}, Direction, MarketContext, OHLCVExt, PatternDetector, PatternId, PatternMatch, Ratio, Result, OHLCV};
+
+impl_with_defaults!(
+  BreakawayDetector,
+  ConcealingBabySwallowDetector,
+  HikkakeDetector,
+  HikkakeModDetector,
+  LadderBottomDetector,
+  MatHoldDetector,
+  RiseFallThreeMethodsDetector,
+  XSideGapThreeMethodsDetector,
+);
 
 // ============================================================
 // BREAKAWAY
@@ -27,15 +33,7 @@ pub struct BreakawayDetector {
 
 impl Default for BreakawayDetector {
   fn default() -> Self {
-    Self {
-      body_long_factor: super::helpers::BODY_LONG_FACTOR,
-    }
-  }
-}
-
-impl BreakawayDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
+    Self { body_long_factor: super::helpers::BODY_LONG_FACTOR }
   }
 }
 
@@ -70,9 +68,15 @@ impl PatternDetector for BreakawayDetector {
     let color_fifth = if fifth.close() >= fifth.open() { 1 } else { -1 };
 
     // TA-Lib: colors i-4, i-3, i-1 same; i opposite (no check on i-2)
-    if color_first != color_second { return None; }
-    if color_second != color_fourth { return None; }
-    if color_fourth == color_fifth { return None; }
+    if color_first != color_second {
+      return None;
+    }
+    if color_second != color_fourth {
+      return None;
+    }
+    if color_fourth == color_fifth {
+      return None;
+    }
 
     // TA-Lib: first candle is BodyLong
     let avg_body_first = super::helpers::trailing_avg_body(bars, index - 4, 10);
@@ -89,15 +93,25 @@ impl PatternDetector for BreakawayDetector {
 
     if color_first == 1 {
       // White/bullish first — gap up: RealBodyGapUp(i-3, i-4)
-      if second_body_lo <= first_body_hi { return None; }
+      if second_body_lo <= first_body_hi {
+        return None;
+      }
 
       // TA-Lib: progressive higher highs AND lows for i-2 vs i-3, i-1 vs i-2
-      if third.high() <= second.high() || third.low() <= second.low() { return None; }
-      if fourth.high() <= third.high() || fourth.low() <= third.low() { return None; }
+      if third.high() <= second.high() || third.low() <= second.low() {
+        return None;
+      }
+      if fourth.high() <= third.high() || fourth.low() <= third.low() {
+        return None;
+      }
 
       // TA-Lib: close[i] < open[i-3] && close[i] > close[i-4]
-      if fifth.close() >= second.open() { return None; }
-      if fifth.close() <= first.close() { return None; }
+      if fifth.close() >= second.open() {
+        return None;
+      }
+      if fifth.close() <= first.close() {
+        return None;
+      }
 
       Some(PatternMatch {
         pattern_id:  PatternDetector::id(self),
@@ -108,15 +122,25 @@ impl PatternDetector for BreakawayDetector {
       })
     } else {
       // Black/bearish first — gap down: RealBodyGapDown(i-3, i-4)
-      if second_body_hi >= first_body_lo { return None; }
+      if second_body_hi >= first_body_lo {
+        return None;
+      }
 
       // TA-Lib: progressive lower highs AND lows for i-2 vs i-3, i-1 vs i-2
-      if third.high() >= second.high() || third.low() >= second.low() { return None; }
-      if fourth.high() >= third.high() || fourth.low() >= third.low() { return None; }
+      if third.high() >= second.high() || third.low() >= second.low() {
+        return None;
+      }
+      if fourth.high() >= third.high() || fourth.low() >= third.low() {
+        return None;
+      }
 
       // TA-Lib: close[i] > open[i-3] && close[i] < close[i-4]
-      if fifth.close() <= second.open() { return None; }
-      if fifth.close() >= first.close() { return None; }
+      if fifth.close() <= second.open() {
+        return None;
+      }
+      if fifth.close() >= first.close() {
+        return None;
+      }
 
       Some(PatternMatch {
         pattern_id:  PatternDetector::id(self),
@@ -145,12 +169,6 @@ impl Default for ConcealingBabySwallowDetector {
   }
 }
 
-impl ConcealingBabySwallowDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for ConcealingBabySwallowDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_CONCEALBABYSWALL")
@@ -164,7 +182,7 @@ impl PatternDetector for ConcealingBabySwallowDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 3 {
       return None;
@@ -226,7 +244,7 @@ impl PatternDetector for ConcealingBabySwallowDetector {
 /// CDLHIKKAKE - Hikkake Pattern (TA-Lib compatible, two-stage: setup + confirmation)
 ///
 /// TA-Lib's Hikkake is a stateful pattern:
-/// - **Setup** (±100): 3-bar pattern — bar[j-1] strictly inside bar[j-2], bar[j] breaks out
+/// - **Setup** (±100): 3-bar pattern — bar\[j-1\] strictly inside bar\[j-2\], bar\[j\] breaks out
 /// - **Confirmation** (±200): Within 3 bars after setup, close breaks the inside bar's level
 ///
 /// This implementation simulates TA-Lib's state machine statelessly by looking backward
@@ -241,10 +259,6 @@ impl Default for HikkakeDetector {
 }
 
 impl HikkakeDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-
   /// Check if there's a Hikkake setup completing at bar `j`.
   ///
   /// Setup: bars[j-1] is strictly inside bars[j-2], and bars[j] breaks out.
@@ -323,10 +337,10 @@ impl PatternDetector for HikkakeDetector {
         let inside_bar = &bars[j - 1];
         let mut already_confirmed = false;
 
-        for k in (j + 1)..index {
+        for bar in &bars[(j + 1)..index] {
           let confirmed_here = match dir {
-            Direction::Bullish => bars[k].close() > inside_bar.high(),
-            Direction::Bearish => bars[k].close() < inside_bar.low(),
+            Direction::Bullish => bar.close() > inside_bar.high(),
+            Direction::Bearish => bar.close() < inside_bar.low(),
             _ => false,
           };
           if confirmed_here {
@@ -375,17 +389,11 @@ pub struct HikkakeModDetector {
 
 impl Default for HikkakeModDetector {
   fn default() -> Self {
-    Self {
-      near_factor: super::helpers::NEAR_FACTOR,
-    }
+    Self { near_factor: super::helpers::NEAR_FACTOR }
   }
 }
 
 impl HikkakeModDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-
   /// Check if there's a HikkakeMod setup completing at bar `j`.
   ///
   /// Setup: bars[j-2] strictly inside bars[j-3], bars[j-1] strictly inside bars[j-2],
@@ -410,8 +418,7 @@ impl HikkakeModDetector {
     }
 
     // Near threshold for close-near-extreme check on second bar
-    let near_threshold =
-      super::helpers::trailing_avg_range(bars, j - 2, 5) * near_factor;
+    let near_threshold = super::helpers::trailing_avg_range(bars, j - 2, 5) * near_factor;
 
     // Breakout direction: both high AND low must shift in the same direction
     if breakout.high() < third.high() && breakout.low() < third.low() {
@@ -483,10 +490,10 @@ impl PatternDetector for HikkakeModDetector {
         let ref_bar = &bars[j - 1];
         let mut already_confirmed = false;
 
-        for k in (j + 1)..index {
+        for bar in &bars[(j + 1)..index] {
           let confirmed_here = match dir {
-            Direction::Bullish => bars[k].close() > ref_bar.high(),
-            Direction::Bearish => bars[k].close() < ref_bar.low(),
+            Direction::Bullish => bar.close() > ref_bar.high(),
+            Direction::Bearish => bar.close() < ref_bar.low(),
             _ => false,
           };
           if confirmed_here {
@@ -532,15 +539,7 @@ pub struct LadderBottomDetector {
 
 impl Default for LadderBottomDetector {
   fn default() -> Self {
-    Self {
-      shadow_veryshort_factor: super::helpers::SHADOW_VERYSHORT_FACTOR,
-    }
-  }
-}
-
-impl LadderBottomDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
+    Self { shadow_veryshort_factor: super::helpers::SHADOW_VERYSHORT_FACTOR }
   }
 }
 
@@ -557,7 +556,7 @@ impl PatternDetector for LadderBottomDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 4 {
       return None;
@@ -569,9 +568,15 @@ impl PatternDetector for LadderBottomDetector {
     let fifth = bars.get(index)?;
 
     // TA-Lib: First three are black (close < open) with descending opens and closes
-    if first.close() >= first.open() { return None; }
-    if second.close() >= second.open() { return None; }
-    if third.close() >= third.open() { return None; }
+    if first.close() >= first.open() {
+      return None;
+    }
+    if second.close() >= second.open() {
+      return None;
+    }
+    if third.close() >= third.open() {
+      return None;
+    }
     if second.open() >= first.open() || third.open() >= second.open() {
       return None;
     }
@@ -618,24 +623,18 @@ impl PatternDetector for LadderBottomDetector {
 /// CDLMATHOLD - Mat Hold (5-bar pattern)
 #[derive(Debug, Clone)]
 pub struct MatHoldDetector {
-  pub body_long_factor: f64,
+  pub body_long_factor:  f64,
   pub body_short_factor: f64,
-  pub penetration: f64,
+  pub penetration:       f64,
 }
 
 impl Default for MatHoldDetector {
   fn default() -> Self {
     Self {
-      body_long_factor: super::helpers::BODY_LONG_FACTOR,
+      body_long_factor:  super::helpers::BODY_LONG_FACTOR,
       body_short_factor: super::helpers::BODY_SHORT_FACTOR,
-      penetration: 0.5,
+      penetration:       0.5,
     }
-  }
-}
-
-impl MatHoldDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -769,22 +768,16 @@ impl PatternDetector for MatHoldDetector {
 /// CDLRISEFALL3METHODS - Rising/Falling Three Methods (5-bar pattern)
 #[derive(Debug, Clone)]
 pub struct RiseFallThreeMethodsDetector {
-  pub body_long_factor: f64,
+  pub body_long_factor:  f64,
   pub body_short_factor: f64,
 }
 
 impl Default for RiseFallThreeMethodsDetector {
   fn default() -> Self {
     Self {
-      body_long_factor: super::helpers::BODY_LONG_FACTOR,
+      body_long_factor:  super::helpers::BODY_LONG_FACTOR,
       body_short_factor: super::helpers::BODY_SHORT_FACTOR,
     }
-  }
-}
-
-impl RiseFallThreeMethodsDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -801,7 +794,7 @@ impl PatternDetector for RiseFallThreeMethodsDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 4 {
       return None;
@@ -827,10 +820,18 @@ impl PatternDetector for RiseFallThreeMethodsDetector {
     let color_fifth = if fifth.close() >= fifth.open() { 1_i32 } else { -1 };
 
     // TA-Lib: first and fifth same color, middle three opposite
-    if color_first != -color_second { return None; }
-    if color_second != color_third { return None; }
-    if color_third != color_fourth { return None; }
-    if color_fourth != -color_fifth { return None; }
+    if color_first != -color_second {
+      return None;
+    }
+    if color_second != color_third {
+      return None;
+    }
+    if color_third != color_fourth {
+      return None;
+    }
+    if color_fourth != -color_fifth {
+      return None;
+    }
 
     // TA-Lib: first candle BodyLong
     let first_body = first.body();
@@ -839,9 +840,15 @@ impl PatternDetector for RiseFallThreeMethodsDetector {
     }
 
     // TA-Lib: middle three are BodyShort
-    if !is_body_short_f(second.body(), avg_body_second, second.range(), self.body_short_factor) { return None; }
-    if !is_body_short_f(third.body(), avg_body_third, third.range(), self.body_short_factor) { return None; }
-    if !is_body_short_f(fourth.body(), avg_body_fourth, fourth.range(), self.body_short_factor) { return None; }
+    if !is_body_short_f(second.body(), avg_body_second, second.range(), self.body_short_factor) {
+      return None;
+    }
+    if !is_body_short_f(third.body(), avg_body_third, third.range(), self.body_short_factor) {
+      return None;
+    }
+    if !is_body_short_f(fourth.body(), avg_body_fourth, fourth.range(), self.body_short_factor) {
+      return None;
+    }
 
     // TA-Lib: fifth candle BodyLong
     if !is_body_long_f(fifth.body(), avg_body_fifth, fifth.range(), self.body_long_factor) {
@@ -856,31 +863,45 @@ impl PatternDetector for RiseFallThreeMethodsDetector {
     let fourth_body_lo = fourth.open().min(fourth.close());
     let fourth_body_hi = fourth.open().max(fourth.close());
 
-    if second_body_lo >= first.high() || second_body_hi <= first.low() { return None; }
-    if third_body_lo >= first.high() || third_body_hi <= first.low() { return None; }
-    if fourth_body_lo >= first.high() || fourth_body_hi <= first.low() { return None; }
+    if second_body_lo >= first.high() || second_body_hi <= first.low() {
+      return None;
+    }
+    if third_body_lo >= first.high() || third_body_hi <= first.low() {
+      return None;
+    }
+    if fourth_body_lo >= first.high() || fourth_body_hi <= first.low() {
+      return None;
+    }
 
     // TA-Lib: progressive closes — close[i-2] * color < close[i-3] * color, etc.
     // When first is white (color=1): close[i-2] < close[i-3] and close[i-1] < close[i-2]
     // When first is black (color=-1): close[i-2] > close[i-3] and close[i-1] > close[i-2]
     let cf = color_first as f64;
-    if third.close() * cf >= second.close() * cf { return None; }
-    if fourth.close() * cf >= third.close() * cf { return None; }
+    if third.close() * cf >= second.close() * cf {
+      return None;
+    }
+    if fourth.close() * cf >= third.close() * cf {
+      return None;
+    }
 
     // TA-Lib: fifth opens past fourth close, closes past first close
     // open[i] * color > close[i-1] * color
     // close[i] * color > close[i-4] * color
-    if fifth.open() * cf <= fourth.close() * cf { return None; }
-    if fifth.close() * cf <= first.close() * cf { return None; }
+    if fifth.open() * cf <= fourth.close() * cf {
+      return None;
+    }
+    if fifth.close() * cf <= first.close() * cf {
+      return None;
+    }
 
     let direction = if color_first == 1 { Direction::Bullish } else { Direction::Bearish };
 
     Some(PatternMatch {
-      pattern_id:  PatternDetector::id(self),
+      pattern_id: PatternDetector::id(self),
       direction,
-      strength:    0.8,
+      strength: 0.8,
       start_index: index - 4,
-      end_index:   index,
+      end_index: index,
     })
   }
 }
@@ -901,12 +922,6 @@ impl Default for XSideGapThreeMethodsDetector {
   }
 }
 
-impl XSideGapThreeMethodsDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for XSideGapThreeMethodsDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_XSIDEGAP3METHODS")
@@ -920,7 +935,7 @@ impl PatternDetector for XSideGapThreeMethodsDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 2 {
       return None;
@@ -969,11 +984,11 @@ impl PatternDetector for XSideGapThreeMethodsDetector {
     };
 
     Some(PatternMatch {
-      pattern_id:  PatternDetector::id(self),
+      pattern_id: PatternDetector::id(self),
       direction,
-      strength:    0.65,
+      strength: 0.65,
       start_index: index - 2,
-      end_index:   index,
+      end_index: index,
     })
   }
 }

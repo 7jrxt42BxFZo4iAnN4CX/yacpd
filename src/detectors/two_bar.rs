@@ -13,15 +13,27 @@
 
 use std::collections::HashMap;
 
-use crate::{
-  params::{get_ratio, ParamMeta, ParamType, ParameterizedDetector},
-  Direction, MarketContext, OHLCVExt, PatternDetector, PatternId, PatternMatch, Ratio, Result,
-  OHLCV,
-};
+use super::{helpers, helpers::{is_body_long, is_body_long_f, is_body_short, is_body_short_f, is_doji}};
+use crate::{params::{get_ratio, ParamMeta, ParamType, ParameterizedDetector}, Direction, MarketContext, OHLCVExt, PatternDetector, PatternId, PatternMatch, Ratio, Result, OHLCV};
 
-use super::helpers;
-use super::helpers::{is_body_long, is_body_long_f, is_body_short, is_body_short_f, is_doji};
-
+impl_with_defaults!(
+  EngulfingDetector,
+  HaramiDetector,
+  HaramiCrossDetector,
+  PiercingDetector,
+  DarkCloudCoverDetector,
+  DojiStarDetector,
+  CounterattackDetector,
+  InNeckDetector,
+  OnNeckDetector,
+  ThrustingDetector,
+  KickingDetector,
+  KickingByLengthDetector,
+  MatchingLowDetector,
+  HomingPigeonDetector,
+  SeparatingLinesDetector,
+  GapSideSideWhiteDetector,
+);
 
 // ============================================================
 // ENGULFING PATTERNS
@@ -39,12 +51,6 @@ impl Default for EngulfingDetector {
   }
 }
 
-impl EngulfingDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for EngulfingDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_ENGULFING")
@@ -58,7 +64,7 @@ impl PatternDetector for EngulfingDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 1 {
       return None;
@@ -84,11 +90,11 @@ impl PatternDetector for EngulfingDetector {
         let strict = curr.open() != prev.close() && curr.close() != prev.open();
         let strength = if strict { 0.7 } else { 0.6 };
         return Some(PatternMatch {
-          pattern_id:  PatternDetector::id(self),
-          direction:   Direction::Bullish,
+          pattern_id: PatternDetector::id(self),
+          direction: Direction::Bullish,
           strength,
           start_index: index - 1,
-          end_index:   index,
+          end_index: index,
         });
       }
     }
@@ -104,11 +110,11 @@ impl PatternDetector for EngulfingDetector {
         let strict = curr.open() != prev.close() && curr.close() != prev.open();
         let strength = if strict { 0.7 } else { 0.6 };
         return Some(PatternMatch {
-          pattern_id:  PatternDetector::id(self),
-          direction:   Direction::Bearish,
+          pattern_id: PatternDetector::id(self),
+          direction: Direction::Bearish,
           strength,
           start_index: index - 1,
-          end_index:   index,
+          end_index: index,
         });
       }
     }
@@ -130,12 +136,6 @@ pub struct HaramiDetector {
 impl Default for HaramiDetector {
   fn default() -> Self {
     Self { max_body_ratio: Ratio::new_const(0.5) }
-  }
-}
-
-impl HaramiDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -190,11 +190,7 @@ impl PatternDetector for HaramiDetector {
       return None;
     }
 
-    let direction = if prev.is_bearish() {
-      Direction::Bullish
-    } else {
-      Direction::Bearish
-    };
+    let direction = if prev.is_bearish() { Direction::Bullish } else { Direction::Bearish };
 
     // TA-Lib: returns 100 if strictly inside, 80 if one end matches
     let strictly_inside = curr_high < prev_high && curr_low > prev_low;
@@ -219,12 +215,6 @@ pub struct HaramiCrossDetector {
 impl Default for HaramiCrossDetector {
   fn default() -> Self {
     Self { doji_body_max_ratio: Ratio::new_const(0.1) }
-  }
-}
-
-impl HaramiCrossDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -275,11 +265,7 @@ impl PatternDetector for HaramiCrossDetector {
       return None;
     }
 
-    let direction = if prev.is_bearish() {
-      Direction::Bullish
-    } else {
-      Direction::Bearish
-    };
+    let direction = if prev.is_bearish() { Direction::Bullish } else { Direction::Bearish };
 
     Some(PatternMatch {
       pattern_id: PatternDetector::id(self),
@@ -304,12 +290,6 @@ pub struct PiercingDetector {
 impl Default for PiercingDetector {
   fn default() -> Self {
     Self { min_pierce_ratio: Ratio::new_const(0.5) }
-  }
-}
-
-impl PiercingDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -396,12 +376,6 @@ impl Default for DarkCloudCoverDetector {
   }
 }
 
-impl DarkCloudCoverDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for DarkCloudCoverDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_DARKCLOUDCOVER")
@@ -482,12 +456,6 @@ impl Default for DojiStarDetector {
   }
 }
 
-impl DojiStarDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for DojiStarDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_DOJISTAR")
@@ -501,7 +469,7 @@ impl PatternDetector for DojiStarDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 1 {
       return None;
@@ -579,12 +547,6 @@ impl Default for CounterattackDetector {
   }
 }
 
-impl CounterattackDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for CounterattackDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_COUNTERATTACK")
@@ -598,7 +560,7 @@ impl PatternDetector for CounterattackDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 1 {
       return None;
@@ -633,11 +595,7 @@ impl PatternDetector for CounterattackDetector {
     }
 
     // TA-Lib: direction based on current candle color
-    let direction = if curr.is_bullish() {
-      Direction::Bullish
-    } else {
-      Direction::Bearish
-    };
+    let direction = if curr.is_bullish() { Direction::Bullish } else { Direction::Bearish };
 
     Some(PatternMatch {
       pattern_id: PatternDetector::id(self),
@@ -665,12 +623,6 @@ impl Default for InNeckDetector {
   }
 }
 
-impl InNeckDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for InNeckDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_INNECK")
@@ -684,7 +636,7 @@ impl PatternDetector for InNeckDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 1 {
       return None;
@@ -693,8 +645,12 @@ impl PatternDetector for InNeckDetector {
     let curr = bars.get(index)?;
 
     // TA-Lib: 1st black (close < open), 2nd white (close >= open)
-    if prev.close() >= prev.open() { return None; }
-    if curr.close() < curr.open() { return None; }
+    if prev.close() >= prev.open() {
+      return None;
+    }
+    if curr.close() < curr.open() {
+      return None;
+    }
 
     // TA-Lib: 1st candle must have BodyLong (per-candle trailing avg at i-1)
     let prev_body = prev.body();
@@ -741,12 +697,6 @@ impl Default for OnNeckDetector {
   }
 }
 
-impl OnNeckDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for OnNeckDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_ONNECK")
@@ -769,8 +719,12 @@ impl PatternDetector for OnNeckDetector {
     let curr = bars.get(index)?;
 
     // TA-Lib: 1st black (close < open), 2nd white (close >= open)
-    if prev.close() >= prev.open() { return None; }
-    if curr.close() < curr.open() { return None; }
+    if prev.close() >= prev.open() {
+      return None;
+    }
+    if curr.close() < curr.open() {
+      return None;
+    }
 
     // TA-Lib: 1st candle must have BodyLong (per-candle trailing avg at i-1)
     let prev_body = prev.body();
@@ -809,21 +763,12 @@ impl PatternDetector for OnNeckDetector {
 #[derive(Debug, Clone)]
 pub struct ThrustingDetector {
   pub body_long_factor: f64,
-  pub equal_factor: f64,
+  pub equal_factor:     f64,
 }
 
 impl Default for ThrustingDetector {
   fn default() -> Self {
-    Self {
-      body_long_factor: helpers::BODY_LONG_FACTOR,
-      equal_factor: helpers::EQUAL_FACTOR,
-    }
-  }
-}
-
-impl ThrustingDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
+    Self { body_long_factor: helpers::BODY_LONG_FACTOR, equal_factor: helpers::EQUAL_FACTOR }
   }
 }
 
@@ -840,7 +785,7 @@ impl PatternDetector for ThrustingDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 1 {
       return None;
@@ -849,8 +794,12 @@ impl PatternDetector for ThrustingDetector {
     let curr = bars.get(index)?;
 
     // TA-Lib: 1st black (close < open), 2nd white (close >= open)
-    if prev.close() >= prev.open() { return None; }
-    if curr.close() < curr.open() { return None; }
+    if prev.close() >= prev.open() {
+      return None;
+    }
+    if curr.close() < curr.open() {
+      return None;
+    }
 
     // TA-Lib: 1st candle must have BodyLong (per-candle trailing avg at i-1)
     let prev_body = prev.body();
@@ -900,12 +849,6 @@ pub struct KickingDetector {
 impl Default for KickingDetector {
   fn default() -> Self {
     Self { shadow_max_ratio: Ratio::new_const(0.05) }
-  }
-}
-
-impl KickingDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -972,12 +915,6 @@ pub struct KickingByLengthDetector {
 impl Default for KickingByLengthDetector {
   fn default() -> Self {
     Self { shadow_max_ratio: Ratio::new_const(0.05) }
-  }
-}
-
-impl KickingByLengthDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -1059,12 +996,6 @@ impl Default for MatchingLowDetector {
   }
 }
 
-impl MatchingLowDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for MatchingLowDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_MATCHINGLOW")
@@ -1078,7 +1009,7 @@ impl PatternDetector for MatchingLowDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 1 {
       return None;
@@ -1112,22 +1043,16 @@ impl PatternDetector for MatchingLowDetector {
 /// CDLHOMINGPIGEON - Homing Pigeon
 #[derive(Debug, Clone)]
 pub struct HomingPigeonDetector {
-  pub body_long_factor: f64,
+  pub body_long_factor:  f64,
   pub body_short_factor: f64,
 }
 
 impl Default for HomingPigeonDetector {
   fn default() -> Self {
     Self {
-      body_long_factor: helpers::BODY_LONG_FACTOR,
+      body_long_factor:  helpers::BODY_LONG_FACTOR,
       body_short_factor: helpers::BODY_SHORT_FACTOR,
     }
-  }
-}
-
-impl HomingPigeonDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
   }
 }
 
@@ -1144,7 +1069,7 @@ impl PatternDetector for HomingPigeonDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 1 {
       return None;
@@ -1207,12 +1132,6 @@ impl Default for SeparatingLinesDetector {
   }
 }
 
-impl SeparatingLinesDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for SeparatingLinesDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_SEPARATINGLINES")
@@ -1226,7 +1145,7 @@ impl PatternDetector for SeparatingLinesDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 1 {
       return None;
@@ -1259,11 +1178,7 @@ impl PatternDetector for SeparatingLinesDetector {
 
     // TA-Lib: 2nd candle's opening shadow must be very short (per-candle trailing avg at i)
     // Bullish (white): lower shadow. Bearish (black): upper shadow
-    let opening_shadow = if curr_white {
-      curr.lower_shadow()
-    } else {
-      curr.upper_shadow()
-    };
+    let opening_shadow = if curr_white { curr.lower_shadow() } else { curr.upper_shadow() };
     let curr_avg_range = helpers::trailing_avg_range(bars, index, 10);
     if !helpers::is_shadow_very_short(opening_shadow, curr_avg_range, curr_range) {
       return None;
@@ -1294,12 +1209,6 @@ impl Default for GapSideSideWhiteDetector {
   }
 }
 
-impl GapSideSideWhiteDetector {
-  pub fn with_defaults() -> Self {
-    Self::default()
-  }
-}
-
 impl PatternDetector for GapSideSideWhiteDetector {
   fn id(&self) -> PatternId {
     PatternId("CDL_GAPSIDESIDEWHITE")
@@ -1313,7 +1222,7 @@ impl PatternDetector for GapSideSideWhiteDetector {
     &self,
     bars: &[T],
     index: usize,
-    ctx: &MarketContext,
+    _ctx: &MarketContext,
   ) -> Option<PatternMatch> {
     if index < 2 {
       return None;
