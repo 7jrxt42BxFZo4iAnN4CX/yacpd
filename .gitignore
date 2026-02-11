@@ -1,0 +1,30 @@
+# Build
+/target
+Cargo.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python (validation tests)
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# Coverage
+*.profraw
+lcov.info
+coverage/
+
+# Benchmarks
+criterion/
+
+# Generated test artifacts
+tests/talib_test_cases.json
