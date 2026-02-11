@@ -45,35 +45,35 @@ pub const SHADOW_SHORT_RATIO: f64 = 0.1;
 /// TA-Lib: when body=0, it is always a doji (body 0 <= any threshold).
 #[inline]
 pub fn is_doji(body: f64, avg_range: f64, range: f64) -> bool {
-  // Zero body is always a doji (matches TA-Lib: 0 <= threshold for any threshold)
-  if body <= 0.0 {
-    return true;
-  }
-  if avg_range > 0.0 {
-    body <= avg_range * DOJI_FACTOR
-  } else {
-    range > 0.0 && body / range <= DOJI_RATIO
-  }
+    // Zero body is always a doji (matches TA-Lib: 0 <= threshold for any threshold)
+    if body <= 0.0 {
+        return true;
+    }
+    if avg_range > 0.0 {
+        body <= avg_range * DOJI_FACTOR
+    } else {
+        range > 0.0 && body / range <= DOJI_RATIO
+    }
 }
 
 /// Check if body is short (TA-Lib: BodyShort)
 #[inline]
 pub fn is_body_short(body: f64, avg_body: f64, range: f64) -> bool {
-  if avg_body > 0.0 {
-    body < avg_body * BODY_SHORT_FACTOR
-  } else {
-    range > 0.0 && body / range <= BODY_SHORT_RATIO
-  }
+    if avg_body > 0.0 {
+        body < avg_body * BODY_SHORT_FACTOR
+    } else {
+        range > 0.0 && body / range <= BODY_SHORT_RATIO
+    }
 }
 
 /// Check if body is long (TA-Lib: BodyLong)
 #[inline]
 pub fn is_body_long(body: f64, avg_body: f64, range: f64) -> bool {
-  if avg_body > 0.0 {
-    body > avg_body * BODY_LONG_FACTOR
-  } else {
-    range > 0.0 && body / range >= BODY_LONG_RATIO
-  }
+    if avg_body > 0.0 {
+        body > avg_body * BODY_LONG_FACTOR
+    } else {
+        range > 0.0 && body / range >= BODY_LONG_RATIO
+    }
 }
 
 /// Check if shadow is long (TA-Lib: ShadowLong)
@@ -82,8 +82,8 @@ pub fn is_body_long(body: f64, avg_body: f64, range: f64) -> bool {
 /// When body=0, threshold is 1.0*0=0, so any positive shadow passes.
 #[inline]
 pub fn is_shadow_long(shadow: f64, body: f64, _range: f64) -> bool {
-  // TA-Lib: shadow > body * 1.0; when body=0 threshold=0, any shadow > 0 passes
-  shadow > body
+    // TA-Lib: shadow > body * 1.0; when body=0 threshold=0, any shadow > 0 passes
+    shadow > body
 }
 
 /// Check if shadow is very long (TA-Lib: ShadowVeryLong)
@@ -92,8 +92,8 @@ pub fn is_shadow_long(shadow: f64, body: f64, _range: f64) -> bool {
 /// When body=0, threshold is 2.0*0=0, so any positive shadow passes.
 #[inline]
 pub fn is_shadow_verylong(shadow: f64, body: f64, _range: f64) -> bool {
-  // TA-Lib: shadow > body * 2.0; when body=0 threshold=0, any shadow > 0 passes
-  shadow > body * SHADOW_VERYLONG_FACTOR
+    // TA-Lib: shadow > body * 2.0; when body=0 threshold=0, any shadow > 0 passes
+    shadow > body * SHADOW_VERYLONG_FACTOR
 }
 
 /// Check if shadow is short (TA-Lib: ShadowShort)
@@ -101,48 +101,48 @@ pub fn is_shadow_verylong(shadow: f64, body: f64, _range: f64) -> bool {
 /// Pass avg_shadow = avg(max(upper, lower)) over lookback period
 #[inline]
 pub fn is_shadow_short(shadow: f64, avg_shadow: f64, range: f64) -> bool {
-  if avg_shadow > 0.0 {
-    shadow < avg_shadow
-  } else {
-    range > 0.0 && shadow / range <= SHADOW_SHORT_RATIO
-  }
+    if avg_shadow > 0.0 {
+        shadow < avg_shadow
+    } else {
+        range > 0.0 && shadow / range <= SHADOW_SHORT_RATIO
+    }
 }
 
 /// Check if shadow is very short (TA-Lib: ShadowVeryShort)
 /// Uses avg_range (HighLow) with factor 0.1
 #[inline]
 pub fn is_shadow_very_short(shadow: f64, avg_range: f64, range: f64) -> bool {
-  if avg_range > 0.0 {
-    shadow < avg_range * SHADOW_VERYSHORT_FACTOR
-  } else {
-    range > 0.0 && shadow / range <= SHADOW_SHORT_RATIO
-  }
+    if avg_range > 0.0 {
+        shadow < avg_range * SHADOW_VERYSHORT_FACTOR
+    } else {
+        range > 0.0 && shadow / range <= SHADOW_SHORT_RATIO
+    }
 }
 
 /// Compute trailing average body at a specific bar index.
 /// TA-Lib uses per-bar-position trailing averages for multi-bar patterns.
 #[inline]
 pub fn trailing_avg_body<T: crate::OHLCV>(bars: &[T], at: usize, period: usize) -> f64 {
-  use crate::OHLCVExt;
-  if at == 0 {
-    return OHLCVExt::body(&bars[0]);
-  }
-  let s = at.saturating_sub(period);
-  let slice = &bars[s..at];
-  let sum: f64 = slice.iter().map(|b| OHLCVExt::body(b)).sum();
-  sum / slice.len() as f64
+    use crate::OHLCVExt;
+    if at == 0 {
+        return OHLCVExt::body(&bars[0]);
+    }
+    let s = at.saturating_sub(period);
+    let slice = &bars[s..at];
+    let sum: f64 = slice.iter().map(|b| OHLCVExt::body(b)).sum();
+    sum / slice.len() as f64
 }
 
 /// Compute trailing average range at a specific bar index (for Near/Far/Equal).
 #[inline]
 pub fn trailing_avg_range<T: crate::OHLCV>(bars: &[T], at: usize, period: usize) -> f64 {
-  if at == 0 {
-    return crate::OHLCVExt::range(&bars[0]);
-  }
-  let s = at.saturating_sub(period);
-  let slice = &bars[s..at];
-  let sum: f64 = slice.iter().map(|b| crate::OHLCVExt::range(b)).sum();
-  sum / slice.len() as f64
+    if at == 0 {
+        return crate::OHLCVExt::range(&bars[0]);
+    }
+    let s = at.saturating_sub(period);
+    let slice = &bars[s..at];
+    let sum: f64 = slice.iter().map(|b| crate::OHLCVExt::range(b)).sum();
+    sum / slice.len() as f64
 }
 
 /// Compute trailing average shadow at a specific bar index.
@@ -150,23 +150,26 @@ pub fn trailing_avg_range<T: crate::OHLCV>(bars: &[T], at: usize, period: usize)
 /// Shadows = (upper_shadow + lower_shadow), then avg / 2.0 (per TA_CANDLEAVERAGE)
 #[inline]
 pub fn trailing_avg_shadow<T: crate::OHLCV>(bars: &[T], at: usize, period: usize) -> f64 {
-  use crate::OHLCVExt;
-  if at == 0 {
-    return (OHLCVExt::upper_shadow(&bars[0]) + OHLCVExt::lower_shadow(&bars[0])) / 2.0;
-  }
-  let s = at.saturating_sub(period);
-  let slice = &bars[s..at];
-  let sum: f64 = slice.iter().map(|b| OHLCVExt::upper_shadow(b) + OHLCVExt::lower_shadow(b)).sum();
-  sum / slice.len() as f64 / 2.0
+    use crate::OHLCVExt;
+    if at == 0 {
+        return (OHLCVExt::upper_shadow(&bars[0]) + OHLCVExt::lower_shadow(&bars[0])) / 2.0;
+    }
+    let s = at.saturating_sub(period);
+    let slice = &bars[s..at];
+    let sum: f64 = slice
+        .iter()
+        .map(|b| OHLCVExt::upper_shadow(b) + OHLCVExt::lower_shadow(b))
+        .sum();
+    sum / slice.len() as f64 / 2.0
 }
 
 /// Check if a bar is a marubozu (no/minimal shadows).
 /// Returns `Some(true)` if marubozu, `Some(false)` if not, `None` if range is zero.
 #[inline]
 pub fn is_marubozu<T: crate::OHLCVExt>(bar: &T, shadow_max_ratio: f64) -> Option<bool> {
-  let upper = bar.upper_shadow_ratio()?;
-  let lower = bar.lower_shadow_ratio()?;
-  Some(upper <= shadow_max_ratio && lower <= shadow_max_ratio)
+    let upper = bar.upper_shadow_ratio()?;
+    let lower = bar.lower_shadow_ratio()?;
+    Some(upper <= shadow_max_ratio && lower <= shadow_max_ratio)
 }
 
 // ============================================================
@@ -178,50 +181,50 @@ pub fn is_marubozu<T: crate::OHLCVExt>(bar: &T, shadow_max_ratio: f64) -> Option
 /// Like [`is_doji`] but with a custom factor (replaces [`DOJI_FACTOR`]).
 #[inline]
 pub fn is_doji_f(body: f64, avg_range: f64, range: f64, factor: f64) -> bool {
-  if body <= 0.0 {
-    return true;
-  }
-  if avg_range > 0.0 {
-    body <= avg_range * factor
-  } else {
-    range > 0.0 && body / range <= DOJI_RATIO
-  }
+    if body <= 0.0 {
+        return true;
+    }
+    if avg_range > 0.0 {
+        body <= avg_range * factor
+    } else {
+        range > 0.0 && body / range <= DOJI_RATIO
+    }
 }
 
 /// Like [`is_body_short`] but with a custom factor (replaces [`BODY_SHORT_FACTOR`]).
 #[inline]
 pub fn is_body_short_f(body: f64, avg_body: f64, range: f64, factor: f64) -> bool {
-  if avg_body > 0.0 {
-    body < avg_body * factor
-  } else {
-    range > 0.0 && body / range <= BODY_SHORT_RATIO
-  }
+    if avg_body > 0.0 {
+        body < avg_body * factor
+    } else {
+        range > 0.0 && body / range <= BODY_SHORT_RATIO
+    }
 }
 
 /// Like [`is_body_long`] but with a custom factor (replaces [`BODY_LONG_FACTOR`]).
 #[inline]
 pub fn is_body_long_f(body: f64, avg_body: f64, range: f64, factor: f64) -> bool {
-  if avg_body > 0.0 {
-    body > avg_body * factor
-  } else {
-    range > 0.0 && body / range >= BODY_LONG_RATIO
-  }
+    if avg_body > 0.0 {
+        body > avg_body * factor
+    } else {
+        range > 0.0 && body / range >= BODY_LONG_RATIO
+    }
 }
 
 /// Like [`is_shadow_verylong`] but with a custom factor (replaces [`SHADOW_VERYLONG_FACTOR`]).
 #[inline]
 pub fn is_shadow_verylong_f(shadow: f64, body: f64, _range: f64, factor: f64) -> bool {
-  shadow > body * factor
+    shadow > body * factor
 }
 
 /// Like [`is_shadow_very_short`] but with a custom factor (replaces [`SHADOW_VERYSHORT_FACTOR`]).
 #[inline]
 pub fn is_shadow_very_short_f(shadow: f64, avg_range: f64, range: f64, factor: f64) -> bool {
-  if avg_range > 0.0 {
-    shadow < avg_range * factor
-  } else {
-    range > 0.0 && shadow / range <= SHADOW_SHORT_RATIO
-  }
+    if avg_range > 0.0 {
+        shadow < avg_range * factor
+    } else {
+        range > 0.0 && shadow / range <= SHADOW_SHORT_RATIO
+    }
 }
 
 /// Returns true if `shadow` exceeds the "very short" threshold (i.e. is NOT very short).
@@ -229,12 +232,12 @@ pub fn is_shadow_very_short_f(shadow: f64, avg_range: f64, range: f64, factor: f
 /// is meaningfully long (e.g. the lower shadow of a Dragonfly Doji).
 #[inline]
 pub fn shadow_exceeds_veryshort(shadow: f64, avg_range: f64, factor: f64, range: f64) -> bool {
-  let threshold = avg_range * factor;
-  if threshold > 0.0 {
-    shadow > threshold
-  } else if range > 0.0 {
-    shadow / range > SHADOW_SHORT_RATIO
-  } else {
-    false
-  }
+    let threshold = avg_range * factor;
+    if threshold > 0.0 {
+        shadow > threshold
+    } else if range > 0.0 {
+        shadow / range > SHADOW_SHORT_RATIO
+    } else {
+        false
+    }
 }
